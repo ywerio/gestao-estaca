@@ -1,4 +1,4 @@
-import React,{useEffect,useMemo,useState}from'react';
+import React,{useEffect,useMemo,useRef,useState}from'react';
 import{createRoot}from'react-dom/client';
 import{createClient}from'@supabase/supabase-js';
 import{Home,ChartNoAxesCombined,BookOpen,CalendarDays,Users,Settings,Plus,LogOut,Check,Share2,Send,Menu,X,ShieldCheck,TrendingUp,TrendingDown,Minus,ImagePlus,Sparkles,BarChart3}from'lucide-react';
@@ -41,7 +41,8 @@ const[session,S]=useState(null),[profile,P]=useState(null),[page,Q]=useState('In
 const admin=profile?.email===ADMIN||['presidencia','secretaria'].includes(profile?.role),stake=profile?.unit_type==='estaca';
 useEffect(()=>{if(!supabase){B(false);return}supabase.auth.getSession().then(({data})=>S(data.session));const{data:{subscription}}=supabase.auth.onAuthStateChange((_,s)=>S(s));return()=>subscription.unsubscribe()},[]);
 useEffect(()=>{if(!session){P(null);B(false);return}load()},[session]);
-useEffect(()=>{const target=new URLSearchParams(window.location.search).get('post');if(!target||!posts.length)return;const found=posts.some(p=>String(p.id)===target);if(!found)return;if(page!=='Publicações'){Q('Publicações');return;}requestAnimationFrame(()=>document.getElementById('post-'+target)?.scrollIntoView({behavior:'smooth',block:'start'}));},[posts,page]);
+const handledPostRef=useRef(false);
+useEffect(()=>{const target=new URLSearchParams(window.location.search).get('post');if(handledPostRef.current||!target||!posts.length)return;const found=posts.some(p=>String(p.id)===target);if(!found)return;handledPostRef.current=true;Q('Publicações');requestAnimationFrame(()=>document.getElementById('post-'+target)?.scrollIntoView({behavior:'smooth',block:'start'}));},[posts]);
 async function load(){B(true);const{data:p}=await supabase.from('profiles').select('*').eq('id',session.user.id).maybeSingle();P(p);if(p?.status==='approved'){const[a,b,c,d]=await Promise.all([supabase.from('posts').select('*,profiles(full_name,ward_name)').order('created_at',{ascending:false}),supabase.from('indicator_entries').select('*').order('month'),supabase.from('events').select('*').order('event_date'),supabase.from('weekly_indicator_entries').select('*').order('week_date')]);PO(a.data||[]);ST(b.data||[]);EV(c.data||[]);WK(d.data||[]);if(p.email===ADMIN||['presidencia','secretaria'].includes(p.role)){const{data}=await supabase.from('profiles').select('*').order('created_at',{ascending:false});U(data||[])}}B(false)}
 async function authSubmit(e){e.preventDefault();M('');if(auth==='login'){const{error}=await supabase.auth.signInWithPassword({email:form.email,password:form.password});if(error)M(error.message)}else{const{error}=await supabase.auth.signUp({email:form.email,password:form.password,options:{data:{full_name:form.name,unit_type:form.unit,ward_name:form.ward}}});M(error?.message||'Cadastro recebido. Aguarde a aprovação da liderança.')}}
 const scopedStats=stats.filter(x=>stake||admin||x.ward_name===profile?.ward_name),scopedWeekly=weekly.filter(x=>stake||admin||x.ward_name===profile?.ward_name);
