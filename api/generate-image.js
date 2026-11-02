@@ -14,6 +14,13 @@ export default async function handler(req,res){
     const title=String(req.body?.title||"").slice(0,180);
     const body=String(req.body?.body||"").slice(0,900);
     if(!title&&!body)return res.status(400).json({error:"Informe o título ou o texto da publicação."});
+    // Identifica temas históricos e escriturísticos conhecidos antes de chamar o gerador.
+    // Isso evita depender da capacidade limitada do modelo de imagem para interpretar textos longos.
+    const sourceText=(title+" "+body).normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLowerCase();
+    let sceneBrief="";
+    if(/primeira visao|joseph smith|bosque sagrado/.test(sourceText)){
+      sceneBrief="SPECIFIC SCENE — THE FIRST VISION: Depict the historical event known as the First Vision in the spring of 1820. In the foreground, a 14-year-old Joseph Smith, a young farm boy in simple early-19th-century rural clothing, is kneeling alone in earnest prayer in a quiet grove of trees in upstate New York. Tall woodland trees and natural undergrowth clearly surround him. A brilliant, vertical pillar of heavenly light descends from the sky and illuminates Joseph. Within the radiant light above him are TWO distinct, glorious heavenly Personages, God the Father and Jesus Christ, standing or hovering together above Joseph; portray them respectfully as separate figures in simple, luminous white robes, without halos or fantasy armor. Joseph looks upward in awe. The grove, kneeling boy, descending pillar of light, and two heavenly Personages must all be clearly visible and form the unmistakable central subject. Historically grounded 1820 setting, spring woodland, cinematic but reverent realistic illustration. Do not depict a church building, congregation, modern clothing, a generic person praying indoors, or unrelated scenes.";
+    }
     // O texto de origem é português. O prompt orienta o modelo a interpretar o conteúdo antes de decidir a cena.
     const prompt=[
       "Create one high-quality editorial illustration for an official, respectful publication of The Church of Jesus Christ of Latter-day Saints.",
@@ -22,6 +29,7 @@ export default async function handler(req,res){
       "FAITH AND CULTURAL CONTEXT: Keep the visual language consistent with The Church of Jesus Christ of Latter-day Saints and the Bible. When relevant to the actual message, appropriate visual references may include the Bible, the Book of Mormon, missionaries, a meetinghouse, a temple exterior, family worship, prayer, ministering, or Christ-centered service. Use these references only when they fit the message; do not force them into every image. Depict biblical settings and people respectfully. Do not show temple interiors, sacred ordinances, or ceremonial details.",
       "STYLE: Warm, hopeful, dignified, authentic, welcoming, polished realistic editorial illustration, natural light, clear visual storytelling, balanced composition. Prefer a specific meaningful scene over abstract symbols or decorative effects.",
       "RESTRICTIONS: No written words, captions, lettering, logos, watermarks, crosses, or unrelated religious symbols. Do not distort scriptures or depict sacred ordinances inaccurately.",
+      sceneBrief || "SCENE SELECTION: Carefully identify the central event and depict that exact event, not a generic religious scene.",
       "SOURCE TITLE IN BRAZILIAN PORTUGUESE: "+title,
       "SOURCE MESSAGE IN BRAZILIAN PORTUGUESE: "+body,
       "Final check: the image must visibly communicate the main subject of the Portuguese message, not merely its general religious atmosphere."
