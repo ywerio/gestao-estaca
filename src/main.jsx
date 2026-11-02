@@ -82,13 +82,19 @@ const key=reportPeriod==='trimestral'?d.getFullYear()+'-T'+(Math.floor(d.getMont
 if(!grouped[key])grouped[key]=[];grouped[key].push(attendanceByWeek[k]);
 });
 }else{
+const byMonth={};
 filtered.forEach(x=>{
 const d=new Date(x.month+'T12:00:00');if(d<start||d>=endExclusive)return;
-const key=reportPeriod==='trimestral'?d.getFullYear()+'-T'+(Math.floor(d.getMonth()/3)+1):d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
-if(!grouped[key])grouped[key]=[];grouped[key].push(Number(x.value));
+const key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+byMonth[key]=(byMonth[key]||0)+Number(x.value);
+});
+Object.entries(byMonth).forEach(([monthKey,value])=>{
+const d=new Date(monthKey+'-01T12:00:00');
+const key=reportPeriod==='trimestral'?d.getFullYear()+'-T'+(Math.floor(d.getMonth()/3)+1):monthKey;
+if(!grouped[key])grouped[key]=[];grouped[key].push(value);
 });
 }
-return Object.keys(grouped).sort().map(k=>({label:reportPeriod==='trimestral'?'T'+k.split('-T')[1]+' '+k.split('-T')[0].slice(2):monthLabel(k),value:Math.round(grouped[k].reduce((a,b)=>a+b,0)/grouped[k].length)}));
+return Object.keys(grouped).sort().map(k=>({label:reportPeriod==='trimestral'?'T'+k.split('-T')[1]+' '+k.split('-T')[0].slice(2):monthLabel(k),value:reportPeriod==='mensal'&&!weeklyAttendance?Math.round(grouped[k].reduce((a,b)=>a+b,0)):Math.round(grouped[k].reduce((a,b)=>a+b,0)/grouped[k].length)}));
 },[reportMetric,reportPeriod,reportWard,reportEnd,scopedStats,scopedWeekly]);
 const trend=getTrend(reportPoints),advice=makeAdvice(reportMetric,trend,reportPoints.length>0);
 if(busy)return <div className="center">Carregando...</div>;
