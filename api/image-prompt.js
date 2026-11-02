@@ -17,7 +17,7 @@ const SCENES = [
   { theme: "Família", patterns: [/familia/, /lar/, /pais/, /filhos/], scene: "A family gathered around a wooden table at home, sharing a meaningful activity, viewed naturally from a slight distance in warm morning light." },
   { theme: "Ressurreição", patterns: [/ressurreicao/], scene: "An empty garden tomb at early dawn, a large stone rolled away, warm golden sunlight illuminating the entrance, peaceful hopeful atmosphere, no people in focus." },
   { theme: "Criação e natureza", patterns: [/criacao/, /natureza/, /mundo/], scene: "A majestic natural landscape at sunrise, mountains, water, trees and clouds illuminated by the first golden light, conveying the beauty of creation." },
-  { theme: "Restauração", patterns: [/revelacao/, /profeta/, /restauracao do evangelho/], scene: "A solitary early nineteenth-century young man studying an open Bible beside a wooden table near a window, morning light illuminating the pages, historically accurate rural American home." }
+  { theme: "Restauração", patterns: [/revelacao/, /restauracao do evangelho/], scene: "A solitary early nineteenth-century young man studying an open Bible beside a wooden table near a window, morning light illuminating the pages, historically accurate rural American home." }
 ];
 
 function normalize(value) {
@@ -67,7 +67,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Método não permitido." });
   }
   try {
-    const token = String(req.headers.authorization || "").replace(/^Bearer\\s+/i, "");
+    const token = String(req.headers.authorization || "").replace(/^Bearer\s+/i, "");
     const supabaseUrl = process.env.VITE_SUPABASE_URL;
     const anonKey = process.env.VITE_SUPABASE_ANON_KEY;
     if (!token || !supabaseUrl || !anonKey) return res.status(401).json({ error: "Entre no aplicativo para gerar uma imagem." });
