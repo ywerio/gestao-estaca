@@ -1,10 +1,6 @@
--- Permite que links compartilhados exibam a prévia pública da publicação.
--- Somente publicações marcadas como publicadas ficam acessíveis sem login.
+-- A leitura pública dos metadados de compartilhamento passa pela função serverless.
+-- Removemos a política ampla que permitia a qualquer visitante consultar todas as colunas
+-- de todas as publicações publicadas diretamente pela API REST do Supabase.
 drop policy if exists "Public can view shared posts" on public.posts;
-create policy "Public can view shared posts"
-on public.posts
-for select
-to anon, authenticated
-using (published = true);
 
 notify pgrst, 'reload schema';
