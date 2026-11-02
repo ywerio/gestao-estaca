@@ -29,6 +29,5 @@
 <!-- linha interna dos frontões -->
 <path d="M223 238 L256 214 L289 238 M119 269 L151 249 L182 269 M348 269 L378 250 L408 269" fill="none" stroke="#0A6592" stroke-width="2.5"/>
 </g>
-<text x="256" y="435" text-anchor="middle" fill="#fff" font-family="Montserrat,Arial,sans-serif" font-size="23" font-weight="700" letter-spacing="1.05">ESTACA TERESINA BRASIL</text>
-<text x="256" y="464" text-anchor="middle" fill="#fff" font-family="Montserrat,Arial,sans-serif" font-size="25" font-weight="700" letter-spacing="2">HORTO</text>
+<text x="256" y="448" text-anchor="middle" fill="#fff" font-family="Montserrat,Arial,sans-serif" font-size="17" font-weight="700" letter-spacing=".65">ESTACA TERESINA BRASIL HORTO</text>
 </svg>
