@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+<title id="title">Estaca Teresina Brasil Horto</title><desc id="desc">Selo azul com capela branca e o nome da Estaca.</desc>
+<circle cx="256" cy="256" r="250" fill="#0A6592"/>
+<g fill="#fff" stroke="#0A6592" stroke-linejoin="round">
+<!-- capela: platibanda e corpo -->
+<path d="M48 291 L48 278 L67 278 L67 270 L445 270 L445 278 L464 278 L464 291 Z" stroke="none"/>
+<rect x="54" y="290" width="404" height="106" rx="1" stroke="none"/>
+<!-- pequeno frontão ala esquerda -->
+<path d="M112 270 L151 244 L190 270 Z" stroke="none"/>
+<!-- frontão entrada -->
+<path d="M213 239 L256 207 L299 239 Z" stroke="none"/>
+<!-- pequeno frontão ala direita -->
+<path d="M340 270 L378 245 L416 270 Z" stroke="none"/>
+<!-- torre e pináculo -->
+<path d="M250 204 L256 113 L262 204 Z" stroke="none"/>
+<path d="M244 207 H268 V212 H244 Z M247 201 H265 V207 H247 Z M250 196 H262 V201 H250 Z" stroke="none"/>
+<!-- porta central arqueada -->
+<path d="M235 396 V340 A21 21 0 0 1 277 340 V396 Z" stroke="#0A6592" stroke-width="5"/>
+<!-- janelas arqueadas esquerda -->
+<path d="M77 327 V307 A10 10 0 0 1 97 307 V327 Z M124 327 V307 A10 10 0 0 1 144 307 V327 Z M163 327 V307 A10 10 0 0 1 183 307 V327 Z M198 327 V307 A10 10 0 0 1 218 307 V327 Z" stroke="#0A6592" stroke-width="3"/>
+<!-- janelas arqueadas direita -->
+<path d="M294 327 V307 A10 10 0 0 1 314 307 V327 Z M329 327 V307 A10 10 0 0 1 349 307 V327 Z M375 327 V307 A10 10 0 0 1 395 307 V327 Z M410 327 V307 A10 10 0 0 1 430 307 V327 Z" stroke="#0A6592" stroke-width="3"/>
+<!-- porta lateral dois painéis -->
+<path d="M438 396 V338 H455 V396 Z" stroke="#0A6592" stroke-width="3"/>
+<path d="M440 366 H453" stroke="#0A6592" stroke-width="3" fill="none"/>
+<!-- pilastras e base -->
+<path d="M110 291 V394 M151 291 V394 M190 291 V394 M213 239 V394 M299 239 V394 M340 291 V394 M378 291 V394 M416 291 V394 M55 383 H457" fill="none" stroke="#0A6592" stroke-width="3"/>
+<!-- linha interna dos frontões -->
+<path d="M223 238 L256 214 L289 238 M119 269 L151 249 L182 269 M348 269 L378 250 L408 269" fill="none" stroke="#0A6592" stroke-width="2.5"/>
+</g>
+<text x="256" y="435" text-anchor="middle" fill="#fff" font-family="Montserrat,Arial,sans-serif" font-size="23" font-weight="700" letter-spacing="1.05">ESTACA TERESINA BRASIL</text>
+<text x="256" y="464" text-anchor="middle" fill="#fff" font-family="Montserrat,Arial,sans-serif" font-size="25" font-weight="700" letter-spacing="2">HORTO</text>
+</svg>
