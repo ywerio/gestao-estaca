@@ -18,7 +18,7 @@ export default async function handler(req,res){
     const negativePrompt=String(req.body?.negative_prompt||"").slice(0,1200);
     const seed=Number.isInteger(req.body?.seed)?req.body.seed:Math.floor(Math.random()*1000000);
     const prompt=promptText
-      ? promptText+(negativePrompt?"\\nAvoid these elements: "+negativePrompt:"")
+      ? promptText+(negativePrompt?"\nAvoid these elements: "+negativePrompt:"")
       : "A specific, respectful scene illustrating this publication: "+title+". "+body+". No cross, no stained glass, no church interior, no crowded congregation, no text. Soft painterly editorial illustration, warm natural light.";
     const upstream=await fetch("https://oai.endpoints.kepler.ai.cloud.ovh.net/v1/images/generations",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"stabilityai/stable-diffusion-xl-base-1.0",prompt,seed,n:1,size:"1024x1024",response_format:"b64_json"})});
     const payload=await upstream.json().catch(()=>({}));
