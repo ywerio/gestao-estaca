@@ -21,9 +21,9 @@ export default async function handler(req,res){
       : "A specific, respectful scene illustrating this publication: "+title+". "+body+". No cross, no stained glass, no church interior, no crowded congregation, no text. Soft painterly editorial illustration, warm natural light.";
     const upstream=await fetch("https://oai.endpoints.kepler.ai.cloud.ovh.net/v1/images/generations",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"stabilityai/stable-diffusion-xl-base-1.0",prompt,n:1,size:"1024x1024",response_format:"b64_json"})});
     const payload=await upstream.json().catch(()=>({}));
-    if(!upstream.ok)return res.status(upstream.status===429?429:502).json({error:upstream.status===429?"Limite temporário de geração atingido. Aguarde um minuto e tente novamente.":(payload.error?.message||"O serviço gratuito de imagem está temporariamente indisponível.")});
+    if(!upstream.ok){const limited=upstream.status===429;const unavailable=upstream.status>=500;const message=limited?"O gerador gratuito atingiu o limite temporário de pedidos. Aguarde um pouco e toque em tentar novamente.":unavailable?"O serviço gratuito de imagens está instável no momento. Tente novamente em alguns instantes.":(payload.error?.message||"Não foi possível gerar a imagem. Confira o texto e tente novamente.");return res.status(limited?429:502).json({error:message,retryable:limited||unavailable});}
     const b64=payload.data?.[0]?.b64_json;
     if(!b64)return res.status(502).json({error:"O serviço não retornou uma imagem válida."});
     return res.status(200).json({b64_json:b64});
-  }catch(e){return res.status(500).json({error:"Falha ao conectar ao serviço de geração de imagens."});}
+  }catch(e){console.error("Image generation error:",e);return res.status(500).json({error:"Não foi possível concluir a geração. O serviço gratuito pode estar temporariamente indisponível; tente novamente em instantes.",retryable:true});}
 }
