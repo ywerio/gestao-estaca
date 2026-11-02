@@ -61,7 +61,7 @@ export default async function handler(req, res) {
 
   if (supabaseUrl && secretKey) {
     try {
-      const endpoint = `${supabaseUrl.replace(/\/$/, "")}/rest/v1/posts?id=eq.${encodeURIComponent(id)}&published=eq.true&select=id,title,image_url&limit=1`;
+      const endpoint = `${supabaseUrl.replace(/\/$/, "")}/rest/v1/posts?id=eq.${encodeURIComponent(id)}&published=eq.true&select=id,title,image_url,leaders_only&limit=1`;
       const response = await fetch(endpoint, {
         headers: { apikey: secretKey, Authorization: `Bearer ${secretKey}` }
       });
@@ -77,7 +77,7 @@ export default async function handler(req, res) {
   }
 
   // Não expõe corpo, texto, dados de autor ou informações adicionais no cartão.
-  if (!post) return genericPage(res, canonical);
+  if (!post || post.leaders_only === true) return genericPage(res, canonical);
 
   const title = post.title ? `${String(post.title).slice(0, 160)} · Estaca Horto` : "Estaca Teresina Brasil Horto";
   const image = safeImage(post.image_url);
