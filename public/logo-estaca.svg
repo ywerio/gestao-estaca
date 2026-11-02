@@ -1,33 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
-<title id="title">Estaca Teresina Brasil Horto</title><desc id="desc">Selo azul com capela branca e o nome da Estaca.</desc>
-<circle cx="256" cy="256" r="250" fill="#0A6592"/>
-<g fill="#fff" stroke="#0A6592" stroke-linejoin="round">
-<!-- capela: platibanda e corpo -->
-<path d="M48 291 L48 278 L67 278 L67 270 L445 270 L445 278 L464 278 L464 291 Z" stroke="none"/>
-<rect x="54" y="290" width="404" height="106" rx="1" stroke="none"/>
-<!-- pequeno frontão ala esquerda -->
-<path d="M112 270 L151 244 L190 270 Z" stroke="none"/>
-<!-- frontão entrada -->
-<path d="M213 239 L256 207 L299 239 Z" stroke="none"/>
-<!-- pequeno frontão ala direita -->
-<path d="M340 270 L378 245 L416 270 Z" stroke="none"/>
-<!-- torre e pináculo -->
-<path d="M250 204 L256 113 L262 204 Z" stroke="none"/>
-<path d="M244 207 H268 V212 H244 Z M247 201 H265 V207 H247 Z M250 196 H262 V201 H250 Z" stroke="none"/>
-<!-- porta central arqueada -->
-<path d="M235 396 V340 A21 21 0 0 1 277 340 V396 Z" stroke="#0A6592" stroke-width="5"/>
-<!-- janelas arqueadas esquerda -->
-<path d="M77 327 V307 A10 10 0 0 1 97 307 V327 Z M124 327 V307 A10 10 0 0 1 144 307 V327 Z M163 327 V307 A10 10 0 0 1 183 307 V327 Z M198 327 V307 A10 10 0 0 1 218 307 V327 Z" stroke="#0A6592" stroke-width="3"/>
-<!-- janelas arqueadas direita -->
-<path d="M294 327 V307 A10 10 0 0 1 314 307 V327 Z M329 327 V307 A10 10 0 0 1 349 307 V327 Z M375 327 V307 A10 10 0 0 1 395 307 V327 Z M410 327 V307 A10 10 0 0 1 430 307 V327 Z" stroke="#0A6592" stroke-width="3"/>
-<!-- porta lateral dois painéis -->
-<path d="M438 396 V338 H455 V396 Z" stroke="#0A6592" stroke-width="3"/>
-<path d="M440 366 H453" stroke="#0A6592" stroke-width="3" fill="none"/>
-<!-- pilastras e base -->
-<path d="M110 291 V394 M151 291 V394 M190 291 V394 M213 239 V394 M299 239 V394 M340 291 V394 M378 291 V394 M416 291 V394 M55 383 H457" fill="none" stroke="#0A6592" stroke-width="3"/>
-<!-- linha interna dos frontões -->
-<path d="M223 238 L256 214 L289 238 M119 269 L151 249 L182 269 M348 269 L378 250 L408 269" fill="none" stroke="#0A6592" stroke-width="2.5"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 410" role="img" aria-labelledby="title desc">
+<title id="title">Estaca Teresina Brasil Horto</title>
+<desc id="desc">Desenho linear assimétrico da capela da Estaca Horto, com torre deslocada à esquerda e nome abaixo.</desc>
+<g transform="translate(31 320) scale(4.5 -4.5)" fill="none" stroke="#21483e" stroke-width=".35" stroke-linecap="square" stroke-linejoin="miter">
+  <!-- corpo, beiral, platibanda e pilares das extremidades -->
+  <path d="M0 0 V16 H100 V0 M0 21 H29 M53 21 H100 M0 16 H100"/>
+  <path d="M0 16 V22 H1.3 V16 M98.7 16 V22 H100 V16"/>
+  <!-- linha de base dupla e peitoril -->
+  <path d="M0 0 H100 M0 -.8 H100 M0 2.4 H100"/>
+  <!-- pilastras -->
+  <path d="M9 0 V16 M17 0 V16 M29 0 V16 M30 0 V16 M31 0 V16 M53 0 V16 M75 0 V16 M88 0 V16"/>
+  <!-- frontão central e torre -->
+  <path d="M29 16 L41 21.6 L53 16 M29 15.3 L41 20.9 L53 15.3"/>
+  <path d="M36.25 21.6 H45.75 V23.4 H36.25 Z M37 23.4 H45 V24.2 H37 Z"/>
+  <path d="M38.5 24.2 H43.5 V26 H38.5 Z"/>
+  <path d="M39.5 26 A1.5 1.5 0 0 0 42.5 26"/>
+  <path d="M39.5 26 L39.5 27.2 L41 41 L42.5 27.2 L42.5 26"/>
+  <!-- frontões laterais -->
+  <path d="M9 16 L13 19.5 L17 16 M75 16 L81.5 19.5 L88 16"/>
+  <!-- janelas em arco: 4 à esquerda e 6 à direita -->
+  <path d="M3.15 2.4 V11.25 A1.75 1.75 0 0 1 6.65 11.25 V2.4 Z
+           M11.05 2.4 V11.25 A1.75 1.75 0 0 1 14.55 11.25 V2.4 Z
+           M18.75 2.4 V11.25 A1.75 1.75 0 0 1 22.25 11.25 V2.4 Z
+           M23.55 2.4 V11.25 A1.75 1.75 0 0 1 27.05 11.25 V2.4 Z
+           M54.85 2.4 V11.25 A1.75 1.75 0 0 1 58.35 11.25 V2.4 Z
+           M59.85 2.4 V11.25 A1.75 1.75 0 0 1 63.35 11.25 V2.4 Z
+           M65.45 2.4 V11.25 A1.75 1.75 0 0 1 68.95 11.25 V2.4 Z
+           M70.35 2.4 V11.25 A1.75 1.75 0 0 1 73.85 11.25 V2.4 Z
+           M76.95 2.4 V11.25 A1.75 1.75 0 0 1 80.45 11.25 V2.4 Z
+           M82.05 2.4 V11.25 A1.75 1.75 0 0 1 85.55 11.25 V2.4 Z"/>
+  <!-- porta central em arco, contorno mais grosso -->
+  <path d="M37.8 1.4 V10.7 A3.2 3.2 0 0 1 44.2 10.7 V1.4 Z" stroke-width=".7"/>
+  <!-- porta lateral direita com dois painéis -->
+  <path d="M91 1.5 V12.5 H97 V1.5 Z M91.35 7 H96.65 M91.7 1.8 V12.2 M96.3 1.8 V12.2"/>
+  <!-- pequenos reforços da platibanda e peitoril entre vãos -->
+  <path d="M0 2.4 H3.15 M6.65 2.4 H11.05 M14.55 2.4 H18.75 M22.25 2.4 H23.55 M27.05 2.4 H37.8 M44.2 2.4 H54.85 M58.35 2.4 H59.85 M63.35 2.4 H65.45 M68.95 2.4 H70.35 M73.85 2.4 H76.95 M80.45 2.4 H82.05 M85.55 2.4 H91 M97 2.4 H100"/>
 </g>
-<text x="256" y="448" text-anchor="middle" fill="#fff" font-family="Montserrat,Arial,sans-serif" font-size="17" font-weight="700" letter-spacing=".65">ESTACA TERESINA BRASIL HORTO</text>
+<text x="256" y="377" text-anchor="middle" fill="#21483e" font-family="Montserrat, Arial, sans-serif" font-size="15.5" font-weight="800" letter-spacing=".25">ESTACA TERESINA BRASIL HORTO</text>
 </svg>
