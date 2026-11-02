@@ -1,5 +1,5 @@
 const STYLE = "soft painterly editorial illustration, warm natural light, reverent peaceful mood, gentle natural colors, cinematic composition, clear visual storytelling";
-const NEGATIVE = "cross, crucifix, stained glass, church interior, crowded congregation, pews, priest robes, text, letters, watermark, logo, deformed face, malformed hands, extra fingers, distorted anatomy, duplicate people, cartoon, anime";
+const NEGATIVE = "cross, christian cross, latin cross, crucifix, crucifixion, cross necklace, cross pendant, cross jewelry, cross-shaped object, cross on a building, cross on a church, cross in the background, religious cross symbol, stained glass depicting a cross, church steeple cross, altar cross, text, letters, watermark, logo, deformed face, malformed hands, extra fingers, distorted anatomy, duplicate people, cartoon, anime";
 
 const SCENES = [
   { theme: "Primeira Visão", patterns: [/primeira visao/, /bosque sagrado/, /joseph smith/], scene: "Spring 1820 in upstate New York. A 14-year-old farm boy in simple 1820s rural clothing kneels in prayer, seen from behind, in a quiet grove of tall trees. A brilliant vertical pillar of heavenly light descends through the canopy and illuminates the forest clearing. The woodland and kneeling boy are the unmistakable central subject." },
@@ -53,7 +53,7 @@ function makePrompt(title, content) {
   const theme = selected?.theme || "Natureza (tema neutro)";
   console.log("[image-prompt] tema escolhido:", theme, "pontuação:", selected?.score || 0, "origem:", selected?.source || "fallback");
   return {
-    prompt: scene + " " + STYLE,
+    prompt: scene + " " + STYLE + " IMPORTANT: Do not show any cross or crucifix anywhere in the image, including foreground, background, buildings, clothing, jewelry, or decorative objects. Do not use a cross as a religious symbol. Represent faith only through the actual scene and its appropriate details.",
     negative_prompt: NEGATIVE,
     theme,
     score: selected?.score || 0,
