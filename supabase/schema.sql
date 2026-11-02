@@ -22,6 +22,9 @@ create policy "ward list" on wards for select to authenticated using(approved())
 create policy "read posts in scope" on posts for select to authenticated using(approved() and (unit_type='estaca' or can_ward(ward_name)));
 create policy "leaders create posts" on posts for insert to authenticated with check(exists(select 1 from profiles p where p.id=auth.uid() and p.status='approved' and (p.email='vargas.ywerio@gmail.com' or p.role in('presidencia','secretaria','bishop','counselor','secretary'))));
 create policy "author or admin edit post" on posts for update to authenticated using(author_id=auth.uid() or is_admin()) with check(author_id=auth.uid() or is_admin());
+-- Exclusão global de publicações restrita à Presidência/Secretaria da Estaca.
+drop policy if exists "stake leadership delete posts" on public.posts;
+create policy "stake leadership delete posts" on public.posts for delete to authenticated using(is_admin());
 create policy "read comments" on post_comments for select to authenticated using(approved());
 create policy "write comments" on post_comments for insert to authenticated with check(approved() and author_id=auth.uid());
 create policy "read indicators" on indicator_entries for select to authenticated using(can_ward(ward_name));
