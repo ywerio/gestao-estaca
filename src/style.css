@@ -8,3 +8,43 @@
 .brand .logo-brand{display:block;width:100%;height:auto;max-width:100%;aspect-ratio:1000/520;object-fit:contain;flex:none;border-radius:0!important}
 .brand .brand-name{display:block;width:100%;max-width:100%;color:#fff;font-family:inherit;font-size:12px;font-weight:700;line-height:1.35;letter-spacing:.35px;text-align:center;text-transform:uppercase}
 .brand .close{position:absolute;top:0;right:0;margin:0;padding:2px;color:#fff}
+
+/* Relatórios, frequência semanal e imagens */
+.toolbar-actions{display:flex;gap:8px;flex-wrap:wrap}
+.attendance-summary{display:grid;grid-template-columns:minmax(180px,.8fr) 1.2fr;gap:20px;background:#eaf1ec;border:1px solid #dce8df;border-radius:12px;padding:18px;margin:12px 0 24px}
+.attendance-summary small,.report-heading small,.advice-card>small{font-size:10px;font-weight:700;letter-spacing:.8px;color:#668476}
+.attendance-summary strong{display:block;font:800 34px Manrope;color:#21483e;margin:8px 0}
+.attendance-summary p{font-size:11px;color:#64766c;margin:0}
+.week-list{display:grid;gap:7px;font-size:11px;color:#52685c}
+.week-list span{display:flex;justify-content:space-between;border-bottom:1px solid #d6e2d9;padding-bottom:5px}
+.report-filters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:18px 0}
+.report-filters label,.modal label{display:grid;gap:6px;font-size:11px;color:#61766a;font-weight:600}
+.report-filters select,.report-filters input{width:100%;min-width:0}
+.report-card{padding:18px;margin-bottom:14px}
+.report-heading{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.report-heading h3{margin:5px 0 0}
+.trend{display:flex;align-items:center;gap:5px;font-size:11px;color:#456b57;background:#edf4ef;border-radius:20px;padding:7px 10px}
+.trend svg{width:15px;height:15px}
+.chart-wrap{width:100%;overflow:hidden;margin-top:12px}
+.chart-wrap svg{display:block;width:100%;height:auto;min-height:170px}
+.chart-empty{padding:38px 10px;text-align:center;color:#829087;font-size:12px}
+.report-summary{display:flex;gap:20px;flex-wrap:wrap;border-top:1px solid #edf1ee;padding-top:12px;font-size:11px;color:#6b7e73}
+.report-summary b{color:#234b3c;margin-left:5px}
+.advice-card{background:#f4f7f3;border-color:#dfe9e0;margin-bottom:14px}
+.advice-card p{font-size:13px;line-height:1.65;color:#41594c}
+.advice-card>small:last-child{font-weight:400;letter-spacing:0;color:#7a887f}
+.sources-card{display:grid;gap:10px}
+.sources-card h3{margin:0 0 4px}
+.sources-card a{display:grid;gap:4px;padding:10px 0;border-top:1px solid #edf1ee;text-decoration:none;color:#315b47}
+.sources-card a b{font-size:12px}
+.sources-card a span{font-size:11px;color:#74847a;line-height:1.45}
+.file-pick,.secondary{display:flex!important;align-items:center;justify-content:center;gap:8px;border:1px dashed #9ab3a3;border-radius:9px;padding:12px;color:#315b47;background:#f4f8f4;font-size:12px;cursor:pointer}
+.file-pick input{display:none}
+.secondary{border-style:solid;border-color:#d5e3d8}
+.secondary:disabled{opacity:.55;cursor:not-allowed}
+.image-preview{display:grid;gap:7px}
+.image-preview img,.post-image{display:block;width:100%;max-height:320px;object-fit:cover;border-radius:9px}
+.post-image{margin:12px 0}
+.hint{font-size:10px;color:#829087;line-height:1.5}
+@media(max-width:800px){.report-filters{grid-template-columns:repeat(2,minmax(0,1fr))}.attendance-summary{grid-template-columns:1fr}.toolbar{align-items:flex-start;gap:10px;flex-direction:column}.toolbar-actions{width:100%}.toolbar-actions button{flex:1;justify-content:center}}
+@media(max-width:420px){.report-filters{grid-template-columns:1fr}.report-summary{gap:10px}}
