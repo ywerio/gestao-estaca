@@ -46,4 +46,4 @@ with check(
 );
 drop policy if exists "Authors or admins delete post images" on storage.objects;
 create policy "Authors or admins delete post images" on storage.objects for delete to authenticated
-using(bucket_id='post-images' and (owner_id=auth.uid() or public.is_admin()));
+using(bucket_id='post-images' and (owner_id=auth.uid()::text or public.is_admin()));
