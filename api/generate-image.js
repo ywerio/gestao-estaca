@@ -1,6 +1,16 @@
 export default async function handler(req,res){
   if(req.method!=="POST"){res.setHeader("Allow","POST");return res.status(405).json({error:"Método não permitido."});}
   try{
+    const token=String(req.headers.authorization||"").replace(/^Bearer\s+/i,"");
+    const supabaseUrl=process.env.VITE_SUPABASE_URL;
+    const anonKey=process.env.VITE_SUPABASE_ANON_KEY;
+    if(!token||!supabaseUrl||!anonKey)return res.status(401).json({error:"Entre no aplicativo para gerar uma imagem."});
+    const auth=await fetch(supabaseUrl+"/auth/v1/user",{headers:{apikey:anonKey,Authorization:"Bearer "+token}});
+    if(!auth.ok)return res.status(401).json({error:"Sua sessão expirou. Entre novamente."});
+    const user=await auth.json();
+    const profileRes=await fetch(supabaseUrl+"/rest/v1/profiles?id=eq."+encodeURIComponent(user.id)+"&select=status",{headers:{apikey:anonKey,Authorization:"Bearer "+token}});
+    const profiles=profileRes.ok?await profileRes.json():[];
+    if(!profiles.some(p=>p.status==="approved"))return res.status(403).json({error:"Somente usuários aprovados podem gerar imagens."});
     const title=String(req.body?.title||"").slice(0,180);
     const body=String(req.body?.body||"").slice(0,900);
     if(!title&&!body)return res.status(400).json({error:"Informe o título ou o texto da publicação."});
