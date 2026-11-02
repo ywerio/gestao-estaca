@@ -32,7 +32,7 @@ function parseJson(raw){const s=String(raw||"").replace(/```json/gi,"").replace(
 export default async function handler(req,res){
  if(req.method!=="POST"){res.setHeader("Allow","POST");return res.status(405).json({error:"Método não permitido."});}
  try{
-  const token=String(req.headers.authorization||"").replace(/^Bearer\\s+/i,"");
+  const token=String(req.headers.authorization||"").replace(/^Bearer\s+/i,"");
   const url=process.env.VITE_SUPABASE_URL,key=process.env.VITE_SUPABASE_ANON_KEY;
   if(!token||!url||!key)return res.status(401).json({error:"Entre no aplicativo para gerar uma imagem."});
   const auth=await fetch(url+"/auth/v1/user",{headers:{apikey:key,Authorization:"Bearer "+token}});
@@ -45,7 +45,7 @@ export default async function handler(req,res){
   if(!title&&!content)return res.status(400).json({error:"Informe o título ou o texto da publicação."});
   if(process.env.ANTHROPIC_API_KEY){
    try{
-    const response=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"content-type":"application/json","x-api-key":process.env.ANTHROPIC_API_KEY,"anthropic-version":"2023-06-01"},body:JSON.stringify({model:"claude-haiku-5-5",max_tokens:350,system:SYSTEM,messages:[{role:"user",content:"TITLE (Portuguese): "+title+"\\nTEXT (Portuguese): "+content}]})});
+    const response=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"content-type":"application/json","x-api-key":process.env.ANTHROPIC_API_KEY,"anthropic-version":"2023-06-01"},body:JSON.stringify({model:"claude-haiku-5-5",max_tokens:350,system:SYSTEM,messages:[{role:"user",content:"TITLE (Portuguese): "+title+"\nTEXT (Portuguese): "+content}]})});
     if(!response.ok)throw new Error("Anthropic API error");
     const data=await response.json(),parsed=parseJson(data.content?.find(x=>x.type==="text")?.text);
     if(typeof parsed.prompt!=="string"||parsed.prompt.length<25)throw new Error("Invalid prompt");
