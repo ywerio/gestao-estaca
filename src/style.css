@@ -3,8 +3,8 @@
 .logo-brand{width:66px;height:54px;object-fit:contain;flex:none;border-radius:0!important}
 .brand .logo-brand{border-radius:0!important}
 
-/* Cabeçalho do menu lateral: símbolo acima do nome da Estaca */
-.brand{position:relative;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:7px;padding:5px 34px 22px 5px}
-.brand .logo-brand{display:block;width:170px;height:auto;max-width:100%;aspect-ratio:1000/520;object-fit:contain;flex:none;border-radius:0!important}
-.brand .brand-name{display:block;width:175px;max-width:100%;color:#fff;font-family:inherit;font-size:12px;font-weight:700;line-height:1.35;letter-spacing:.7px;text-transform:uppercase}
+/* Cabeçalho do menu lateral: símbolo e nome centralizados, com a mesma largura */
+.brand{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:7px;width:100%;padding:5px 0 22px}
+.brand .logo-brand{display:block;width:100%;height:auto;max-width:100%;aspect-ratio:1000/520;object-fit:contain;flex:none;border-radius:0!important}
+.brand .brand-name{display:block;width:100%;max-width:100%;color:#fff;font-family:inherit;font-size:12px;font-weight:700;line-height:1.35;letter-spacing:.35px;text-align:center;text-transform:uppercase}
 .brand .close{position:absolute;top:0;right:0;margin:0;padding:2px;color:#fff}
