@@ -25,7 +25,7 @@ export default async function handler(req,res){
       "SOURCE TITLE IN BRAZILIAN PORTUGUESE: "+title,
       "SOURCE MESSAGE IN BRAZILIAN PORTUGUESE: "+body,
       "Final check: the image must visibly communicate the main subject of the Portuguese message, not merely its general religious atmosphere."
-    ].join("\\n\\n");
+    ].join("\n\n");
     const upstream=await fetch("https://oai.endpoints.kepler.ai.cloud.ovh.net/v1/images/generations",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"stabilityai/stable-diffusion-xl-base-1.0",prompt,n:1,size:"1024x1024",response_format:"b64_json"})});
     const payload=await upstream.json().catch(()=>({}));
     if(!upstream.ok)return res.status(upstream.status===429?429:502).json({error:upstream.status===429?"Limite temporário de geração atingido. Aguarde um minuto e tente novamente.":(payload.error?.message||"O serviço gratuito de imagem está temporariamente indisponível.")});
