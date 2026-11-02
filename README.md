@@ -13,7 +13,7 @@ A Estaca consolida as oito Alas. Valores e metas começam em branco.
 
 ## Ativação
 1. Crie um projeto Supabase e execute supabase/schema.sql no SQL Editor.
-2. Configure Auth por e-mail e confirmação de e-mail.
+2. Execute também `supabase/migrations/202611020001_admin-estaca.sql` para provisionar o administrador inicial como Estaca/Presidência. Configure Auth por e-mail e confirmação de e-mail.
 3. Cadastre o primeiro usuário com vargas.ywerio@gmail.com; o trigger aprova apenas esse e-mail automaticamente. Defina a senha no próprio cadastro.
 4. Configure VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY a partir de .env.example no serviço de hospedagem.
 5. Publique com npm install, npm run build; saída dist. Pode importar o repositório no Vercel.
