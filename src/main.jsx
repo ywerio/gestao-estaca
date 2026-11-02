@@ -56,16 +56,30 @@ function share(p){const text=p.title+'\n\n'+p.body;if(navigator.share)navigator.
 const reportPoints=useMemo(()=>{
 const all=reportMetric===ATTENDANCE?scopedWeekly:scopedStats.filter(x=>x.metric_name===reportMetric);
 const filtered=all.filter(x=>reportWard==='Todas as Alas'||x.ward_name===reportWard);
-const end=new Date(reportEnd+'-01T12:00:00'),months=reportPeriod==='trimestral'?3:reportPeriod==='mensal'?6:3;
-if(reportMetric===ATTENDANCE&&reportPeriod==='semanal'){
-const rows=filtered.filter(x=>new Date(x.week_date+'T12:00:00')<=new Date(reportEnd+'-31T23:59:00')).slice(-16);
-return rows.map(x=>({label:new Date(x.week_date+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}),value:Number(x.value)}));
+if(reportPeriod==='semanal'){
+if(reportMetric!==ATTENDANCE)return [];
+const endExclusive=new Date(Number(reportEnd.slice(0,4)),Number(reportEnd.slice(5,7)),1);
+return filtered.filter(x=>new Date(x.week_date+'T12:00:00')<endExclusive).slice(-16).map(x=>({label:new Date(x.week_date+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}),value:Number(x.value)}));
 }
-if(reportPeriod==='semanal'&&reportMetric!==ATTENDANCE)return filtered.slice(-16).map(x=>({label:monthLabel(String(x.month).slice(0,7)),value:Number(x.value)}));
-const start=new Date(end.getFullYear(),end.getMonth()-(reportPeriod==='trimestral'?11:5),1);
+const selected=new Date(reportEnd+'-01T12:00:00');
+let start,endExclusive;
+if(reportPeriod==='trimestral'){
+const quarterStart=Math.floor(selected.getMonth()/3)*3;
+endExclusive=new Date(selected.getFullYear(),quarterStart+3,1);
+start=new Date(endExclusive.getFullYear(),endExclusive.getMonth()-12,1);
+}else{
+endExclusive=new Date(selected.getFullYear(),selected.getMonth()+1,1);
+start=new Date(selected.getFullYear(),selected.getMonth()-5,1);
+}
 const grouped={};
-filtered.forEach(x=>{const d=reportMetric===ATTENDANCE?new Date(x.week_date+'T12:00:00'):new Date(x.month+'T12:00:00');if(d<start||d>end)return;const key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');if(!grouped[key])grouped[key]=[];grouped[key].push(Number(x.value))});
-return Object.keys(grouped).sort().map(k=>({label:monthLabel(k),value:reportMetric===ATTENDANCE?Math.round(grouped[k].reduce((a,b)=>a+b,0)/grouped[k].length):grouped[k].reduce((a,b)=>a+b,0)}));
+filtered.forEach(x=>{
+const d=reportMetric===ATTENDANCE?new Date(x.week_date+'T12:00:00'):new Date(x.month+'T12:00:00');
+if(d<start||d>=endExclusive)return;
+const key=reportPeriod==='trimestral'?d.getFullYear()+'-T'+(Math.floor(d.getMonth()/3)+1):d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+if(!grouped[key])grouped[key]=[];
+grouped[key].push(Number(x.value));
+});
+return Object.keys(grouped).sort().map(k=>({label:reportPeriod==='trimestral'?'T'+k.split('-T')[1]+' '+k.split('-T')[0].slice(2):monthLabel(k),value:reportMetric===ATTENDANCE?Math.round(grouped[k].reduce((a,b)=>a+b,0)/grouped[k].length):grouped[k].reduce((a,b)=>a+b,0)}));
 },[reportMetric,reportPeriod,reportWard,reportEnd,scopedStats,scopedWeekly]);
 const trend=getTrend(reportPoints),advice=makeAdvice(reportMetric,trend,reportPoints.length>0);
 if(busy)return <div className="center">Carregando...</div>;
