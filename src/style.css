@@ -69,3 +69,9 @@
 .post-preview-content p{font-size:12px;line-height:1.45;color:#64746b;margin:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-wrap}
 .post-preview-link{font-size:10px;font-weight:700;color:#426d57;margin-top:3px}
 @media(max-width:420px){.post-preview{gap:10px;padding:9px}.post-preview-media{width:92px;min-width:92px;height:92px}.post-preview-content h3{font-size:13px}}
+
+/* Ações de gerenciamento do mural */
+.post-actions{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:8px}
+.post-actions .share{padding:7px 0}
+.delete-post{display:inline-flex;align-items:center;gap:6px;background:#fff1ef;color:#a33c32;border:1px solid #f0d2ce;border-radius:8px;padding:7px 10px;font-size:11px;font-weight:700}
+.delete-post:hover{background:#ffe6e2}
