@@ -16,11 +16,10 @@ export default async function handler(req,res){
     if(!title&&!body)return res.status(400).json({error:"Informe o título ou o texto da publicação."});
     const promptText=String(req.body?.prompt||"").slice(0,5000);
     const negativePrompt=String(req.body?.negative_prompt||"").slice(0,1200);
-    const seed=Number.isInteger(req.body?.seed)?req.body.seed:Math.floor(Math.random()*1000000);
     const prompt=promptText
       ? promptText+(negativePrompt?"\nAvoid these elements: "+negativePrompt:"")
       : "A specific, respectful scene illustrating this publication: "+title+". "+body+". No cross, no stained glass, no church interior, no crowded congregation, no text. Soft painterly editorial illustration, warm natural light.";
-    const upstream=await fetch("https://oai.endpoints.kepler.ai.cloud.ovh.net/v1/images/generations",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"stabilityai/stable-diffusion-xl-base-1.0",prompt,seed,n:1,size:"1024x1024",response_format:"b64_json"})});
+    const upstream=await fetch("https://oai.endpoints.kepler.ai.cloud.ovh.net/v1/images/generations",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"stabilityai/stable-diffusion-xl-base-1.0",prompt,n:1,size:"1024x1024",response_format:"b64_json"})});
     const payload=await upstream.json().catch(()=>({}));
     if(!upstream.ok)return res.status(upstream.status===429?429:502).json({error:upstream.status===429?"Limite temporário de geração atingido. Aguarde um minuto e tente novamente.":(payload.error?.message||"O serviço gratuito de imagem está temporariamente indisponível.")});
     const b64=payload.data?.[0]?.b64_json;
