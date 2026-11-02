@@ -16,9 +16,10 @@ export default async function handler(req,res){
     if(!title&&!body)return res.status(400).json({error:"Informe o título ou o texto da publicação."});
     const promptText=String(req.body?.prompt||"").slice(0,5000);
     const negativePrompt=String(req.body?.negative_prompt||"").slice(0,1200);
+    const noCrossRule=" ABSOLUTE VISUAL RULE: Do not include any cross or crucifix anywhere in the image—not as the main subject, in the background, on buildings, clothing, jewelry, decorations, or church architecture. Never use a cross as a religious symbol. Tell the story only through the requested people, setting, and objects.";
     const prompt=promptText
-      ? promptText+(negativePrompt?"\nAvoid these elements: "+negativePrompt:"")
-      : "A specific, respectful scene illustrating this publication: "+title+". "+body+". No cross, no stained glass, no church interior, no crowded congregation, no text. Soft painterly editorial illustration, warm natural light.";
+      ? promptText+noCrossRule+(negativePrompt?"\nAvoid these elements: "+negativePrompt:"")
+      : "A specific, respectful scene illustrating this publication: "+title+". "+body+". No crosses or crucifixes anywhere, no stained glass, no church interior, no crowded congregation, no text. Soft painterly editorial illustration, warm natural light.";
     const upstream=await fetch("https://oai.endpoints.kepler.ai.cloud.ovh.net/v1/images/generations",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"stabilityai/stable-diffusion-xl-base-1.0",prompt,n:1,size:"1024x1024",response_format:"b64_json"})});
     const payload=await upstream.json().catch(()=>({}));
     if(!upstream.ok){const limited=upstream.status===429;const unavailable=upstream.status>=500;const message=limited?"O gerador gratuito atingiu o limite temporário de pedidos. Aguarde um pouco e toque em tentar novamente.":unavailable?"O serviço gratuito de imagens está instável no momento. Tente novamente em alguns instantes.":(payload.error?.message||"Não foi possível gerar a imagem. Confira o texto e tente novamente.");return res.status(limited?429:502).json({error:message,retryable:limited||unavailable});}
