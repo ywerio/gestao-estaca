@@ -45,21 +45,24 @@ async function authSubmit(e){e.preventDefault();M('');if(auth==='login'){const{e
 const scopedStats=stats.filter(x=>stake||admin||x.ward_name===profile?.ward_name),scopedWeekly=weekly.filter(x=>stake||admin||x.ward_name===profile?.ward_name);
 const currentMonth=new Date().toISOString().slice(0,7);
 const monthStats=scopedStats.filter(x=>String(x.month).slice(0,7)===currentMonth);
-const tot=(name)=>name===ATTENDANCE?(()=>{const rows=scopedWeekly.filter(x=>String(x.week_date).slice(0,7)===currentMonth);return rows.length?Math.round(rows.reduce((n,x)=>n+Number(x.value),0)/rows.length):0})():monthStats.filter(x=>x.metric_name===name).reduce((n,x)=>n+Number(x.value),0);
+const tot=(name)=>name===ATTENDANCE?(()=>{const rows=scopedWeekly.filter(x=>String(x.week_date).slice(0,7)===currentMonth),byWeek={};rows.forEach(x=>byWeek[x.week_date]=(byWeek[x.week_date]||0)+Number(x.value));const values=Object.values(byWeek);return values.length?Math.round(values.reduce((a,b)=>a+b,0)/values.length):0})():monthStats.filter(x=>x.metric_name===name).reduce((n,x)=>n+Number(x.value),0);
 async function generateImage(){
 if(generating)return;GEN(true);M('');try{const r=await fetch('/api/generate-image',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:draft.title,body:draft.body})});const j=await r.json();if(!r.ok)throw new Error(j.error||'Não foi possível gerar a imagem.');const src='data:image/png;base64,'+j.b64_json;IP(src);IF(await(await fetch(src)).blob());M('Imagem gerada. Confira a prévia antes de publicar.')}catch(e){M(e.message||'Falha ao gerar imagem. Tente novamente em instantes.')}finally{GEN(false)}}
 async function savePost(e){e.preventDefault();M('');if(!imageFile){await generateImage();return}try{const ext=(imageFile.type||'image/png').split('/')[1]||'png',path=session.user.id+'/'+Date.now()+'.'+ext;const{error:upErr}=await supabase.storage.from('post-images').upload(path,imageFile,{contentType:imageFile.type||'image/png',upsert:false});if(upErr)throw upErr;const{data:pub}=supabase.storage.from('post-images').getPublicUrl(path);const{error}=await supabase.from('posts').insert({title:draft.title,body:draft.body,kind:draft.kind,author_id:session.user.id,unit_type:stake?'estaca':'ala',ward_name:stake?null:profile.ward_name,image_url:pub.publicUrl});if(error)throw error;M('Publicação criada.');MO('');IF(null);IP('');await load()}catch(e){M(e.message||'Não foi possível publicar.')}}
 async function saveMetric(e){e.preventDefault();const{error}=await supabase.from('indicator_entries').upsert({ward_name:admin?draft.ward:profile.ward_name,metric_name:draft.metric,value:Number(draft.value),month:draft.month+'-01',updated_by:session.user.id},{onConflict:'ward_name,metric_name,month'});M(error?.message||'Indicador atualizado.');MO('');await load()}
-async function saveWeekly(e){e.preventDefault();const{error}=await supabase.from('weekly_indicator_entries').upsert({ward_name:admin?draft.ward:profile.ward_name,metric_name:ATTENDANCE,value:Number(draft.value),week_date:draft.week_date,updated_by:session.user.id},{onConflict:'ward_name,metric_name,week_date'});M(error?.message||'Frequência semanal registrada.');MO('');await load()}
+async function saveWeekly(e){e.preventDefault();if(new Date(draft.week_date+'T12:00:00').getDay()!==0){M('A data do lançamento precisa ser um domingo.');return}const{error}=await supabase.from('weekly_indicator_entries').upsert({ward_name:admin?draft.ward:profile.ward_name,metric_name:ATTENDANCE,value:Number(draft.value),week_date:draft.week_date,updated_by:session.user.id},{onConflict:'ward_name,metric_name,week_date'});M(error?.message||'Frequência semanal registrada.');MO('');await load()}
 async function approve(id){const ward=document.getElementById('w'+id).value,unit=document.getElementById('u'+id).value,role=document.getElementById('r'+id).value;const{error}=await supabase.from('profiles').update({status:'approved',unit_type:unit,ward_name:unit==='estaca'?null:ward,role}).eq('id',id);M(error?.message||'Acesso aprovado.');await load()}
 function share(p){const text=p.title+'\n\n'+p.body;if(navigator.share)navigator.share({title:p.title,text});else navigator.clipboard?.writeText(text).then(()=>M('Texto copiado.'))}
 const reportPoints=useMemo(()=>{
 const all=reportMetric===ATTENDANCE?scopedWeekly:scopedStats.filter(x=>x.metric_name===reportMetric);
 const filtered=all.filter(x=>reportWard==='Todas as Alas'||x.ward_name===reportWard);
+const weeklyAttendance=reportMetric===ATTENDANCE;
+const attendanceByWeek={};
+if(weeklyAttendance)filtered.forEach(x=>attendanceByWeek[x.week_date]=(attendanceByWeek[x.week_date]||0)+Number(x.value));
 if(reportPeriod==='semanal'){
-if(reportMetric!==ATTENDANCE)return [];
+if(!weeklyAttendance)return [];
 const endExclusive=new Date(Number(reportEnd.slice(0,4)),Number(reportEnd.slice(5,7)),1);
-return filtered.filter(x=>new Date(x.week_date+'T12:00:00')<endExclusive).slice(-16).map(x=>({label:new Date(x.week_date+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}),value:Number(x.value)}));
+return Object.keys(attendanceByWeek).sort().filter(k=>new Date(k+'T12:00:00')<endExclusive).slice(-16).map(k=>({label:new Date(k+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}),value:attendanceByWeek[k]}));
 }
 const selected=new Date(reportEnd+'-01T12:00:00');
 let start,endExclusive;
@@ -72,14 +75,20 @@ endExclusive=new Date(selected.getFullYear(),selected.getMonth()+1,1);
 start=new Date(selected.getFullYear(),selected.getMonth()-5,1);
 }
 const grouped={};
-filtered.forEach(x=>{
-const d=reportMetric===ATTENDANCE?new Date(x.week_date+'T12:00:00'):new Date(x.month+'T12:00:00');
-if(d<start||d>=endExclusive)return;
+if(weeklyAttendance){
+Object.keys(attendanceByWeek).forEach(k=>{
+const d=new Date(k+'T12:00:00');if(d<start||d>=endExclusive)return;
 const key=reportPeriod==='trimestral'?d.getFullYear()+'-T'+(Math.floor(d.getMonth()/3)+1):d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
-if(!grouped[key])grouped[key]=[];
-grouped[key].push(Number(x.value));
+if(!grouped[key])grouped[key]=[];grouped[key].push(attendanceByWeek[k]);
 });
-return Object.keys(grouped).sort().map(k=>({label:reportPeriod==='trimestral'?'T'+k.split('-T')[1]+' '+k.split('-T')[0].slice(2):monthLabel(k),value:reportMetric===ATTENDANCE?Math.round(grouped[k].reduce((a,b)=>a+b,0)/grouped[k].length):grouped[k].reduce((a,b)=>a+b,0)}));
+}else{
+filtered.forEach(x=>{
+const d=new Date(x.month+'T12:00:00');if(d<start||d>=endExclusive)return;
+const key=reportPeriod==='trimestral'?d.getFullYear()+'-T'+(Math.floor(d.getMonth()/3)+1):d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+if(!grouped[key])grouped[key]=[];grouped[key].push(Number(x.value));
+});
+}
+return Object.keys(grouped).sort().map(k=>({label:reportPeriod==='trimestral'?'T'+k.split('-T')[1]+' '+k.split('-T')[0].slice(2):monthLabel(k),value:Math.round(grouped[k].reduce((a,b)=>a+b,0)/grouped[k].length)}));
 },[reportMetric,reportPeriod,reportWard,reportEnd,scopedStats,scopedWeekly]);
 const trend=getTrend(reportPoints),advice=makeAdvice(reportMetric,trend,reportPoints.length>0);
 if(busy)return <div className="center">Carregando...</div>;
