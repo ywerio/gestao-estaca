@@ -1,6 +1,22 @@
 -- Gestão Estaca Horto: hardening de autorização, auditoria, índices e limite de geração de imagens.
 -- Idempotente. Não altera nem remove registros existentes.
 
+-- 2.1) Completar a estrutura que o frontend já utiliza e que ainda não existia no banco.
+alter table public.posts add column if not exists leaders_only boolean not null default false;
+
+create table if not exists public.weekly_indicator_entries(
+  id uuid primary key default gen_random_uuid(),
+  ward_name text not null references public.wards(name),
+  metric_name text not null,
+  value numeric not null default 0 check(value >= 0),
+  week_date date not null,
+  updated_by uuid references public.profiles(id),
+  updated_at timestamptz not null default now(),
+  constraint weekly_indicator_entries_ward_metric_week_key unique(ward_name,metric_name,week_date)
+);
+alter table public.weekly_indicator_entries enable row level security;
+grant select,insert,update,delete on public.weekly_indicator_entries to authenticated;
+
 -- 1) Funções de autorização: o papel é validado no perfil aprovado, nunca no metadata do cadastro.
 create or replace function public.is_presidency()
 returns boolean language sql stable security definer set search_path=public,auth as $$
@@ -111,22 +127,6 @@ begin
   return new;
 end;
 $$;
-
--- 2.1) Completar a estrutura que o frontend já utiliza e que ainda não existia no banco.
-alter table public.posts add column if not exists leaders_only boolean not null default false;
-
-create table if not exists public.weekly_indicator_entries(
-  id uuid primary key default gen_random_uuid(),
-  ward_name text not null references public.wards(name),
-  metric_name text not null,
-  value numeric not null default 0 check(value >= 0),
-  week_date date not null,
-  updated_by uuid references public.profiles(id),
-  updated_at timestamptz not null default now(),
-  constraint weekly_indicator_entries_ward_metric_week_key unique(ward_name,metric_name,week_date)
-);
-alter table public.weekly_indicator_entries enable row level security;
-grant select,insert,update,delete on public.weekly_indicator_entries to authenticated;
 
 -- 3) Recriar políticas nas tabelas críticas. Remover políticas antigas evita permissões OR inesperadas.
 do $$
