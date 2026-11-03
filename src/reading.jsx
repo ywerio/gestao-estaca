@@ -104,12 +104,15 @@ export default function ReadingPage({supabase,session,profile,onMessage=()=>{}})
    if(p.error)throw p.error;if(s.error)throw s.error;
    const serverRows=p.data||[],visibleRows=applyQueue(serverRows,localQueue);
    setProgress(visibleRows);
-   const stored=s.data||{active_color:COLORS[0],layout:'frase',started_on:null,goal_on:null,finished_on:null};
-   const corrected={...stored,started_on:visibleRows.length&&!stored.started_on?TODAY():stored.started_on,finished_on:visibleRows.length===TOTAL?(stored.finished_on||TODAY()):null};
+   const defaults={active_color:COLORS[0],layout:'frase',started_on:null,goal_on:null,finished_on:null};
+   const serverSettings={...defaults,...(s.data||{})},queuedSettings=localQueue.filter(x=>x.type==='settings').at(-1)?.settings||{};
+   const stored={...serverSettings,...queuedSettings};
+   const corrected={...stored,started_on:visibleRows.length&&!stored.started_on?TODAY():stored.started_on,finished_on:serverRows.length===TOTAL?(stored.finished_on||TODAY()):null};
    setSettings(corrected);
-   if(JSON.stringify(corrected)!==JSON.stringify(stored)){
+   if(JSON.stringify(corrected)!==JSON.stringify(serverSettings)){
     const {error:dateError}=await supabase.from('reading_settings').upsert({user_id:userId,...corrected,updated_at:new Date().toISOString()},{onConflict:'user_id'});
-    if(dateError)setError('As datas de início/conclusão precisam ser sincronizadas: '+dateError.message);
+    if(dateError){setError('As datas de início/conclusão precisam ser sincronizadas: '+dateError.message);if(!localQueue.some(x=>x.type==='settings'))setQueue([...localQueue,{id:Date.now()+Math.random(),type:'settings',settings:corrected}]);}
+    else setQueue(localQueue.filter(x=>x.type!=='settings'));
    }
   }catch(e){setError('Não foi possível consultar o Supabase. Confira se o SQL da Leitura já foi aplicado. '+(e.message||''));setProgress(applyQueue([],localQueue));const queuedSettings=localQueue.filter(x=>x.type==='settings').at(-1)?.settings;if(queuedSettings)setSettings(v=>({...v,...queuedSettings}));}
   finally{setLoading(false)}
