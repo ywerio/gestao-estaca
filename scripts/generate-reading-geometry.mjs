@@ -130,7 +130,7 @@ for (const [lineIndex,line] of lines.entries()) {
 const temple=[
  {id:'A',name:'Pináculo',count:6,cells:[{x:176,y:14,w:8,h:11},{x:174,y:25,w:12,h:11},{x:172,y:36,w:16,h:11},{x:170,y:47,w:20,h:11},{x:168,y:58,w:24,h:11},{x:166,y:69,w:28,h:11}].map(v=>({...v,region:'A'}))},
  {id:'B',name:'Torre superior',count:8,cells:makeCells(162,80,2,4,18,16,'B')},
- {id:'C',name:'Torre inferior',count:16,cells:makeCells(144,144,4,4,18,16,'C')},
+ {id:'C',name:'Torre inferior',count:16,cells:makeCells(144,144,4,4,18,14,'C')},
  {id:'D',name:'Corpo central',count:120,cells:makeCells(110,210,10,12,14,14,'D')},
  {id:'E',name:'Ala esquerda',count:25,cells:makeCells(40,245,5,5,14,14,'E')},
  {id:'F',name:'Ala direita',count:25,cells:makeCells(250,245,5,5,14,14,'F')},
