@@ -19,6 +19,9 @@ export const GOALS = {
   'Uruguai': {2026:[100,130,24,60,15,6,40,40],2027:[115,145,24,70,18,7,45,60]}
 };
 export const CHURCH_EVENTS_2027 = [
+  ['2027-01-01','Início do estudo do Novo Testamento — Vem, e Segue-Me','Estudo do Novo Testamento ao longo de todo o ano de 2027.'],
+  ['2027-01-01','Atualização dos horários das reuniões','Ação para bispados e secretários quando houver alteração dos horários da unidade.'],
+
   ['2027-01-16','“Alegrar-se em Cristo” — recurso mundial para os jovens','Vídeo disponível para uso em reuniões, atividades e devocionais.'],
   ['2027-02-07','Devocional Mundial para os Jovens Adultos','Transmissão mundial para jovens adultos.'],
   ['2027-03-04','Instrução sobre templo e história da família para a liderança','Recurso de treinamento disponível para conselhos e líderes.'],
@@ -30,15 +33,19 @@ export const CHURCH_EVENTS_2027 = [
   ['2027-04-03','Conferência Geral — sessões de sábado','Conferência Geral em 3 e 4 de abril.'],
   ['2027-04-04','Conferência Geral — sessões de domingo','Conferência Geral em 3 e 4 de abril.'],
   ['2027-04-05','Comemoração do Templo de Salt Lake','Programação presencial e virtual de 5 de abril a 1º de outubro.'],
+  ['2027-04-10','Abertura da comemoração do Templo de Salt Lake','Evento especial com música e apresentações na comemoração do templo.'],
+  ['2027-05-01','Ao vivo da Praça do Templo','Série de transmissões de maio a outubro, com horários conforme cada área.'],
   ['2027-05-02','Devocional Mundial para os Jovens Adultos','Transmissão mundial para jovens adultos.'],
   ['2027-05-22','Vídeo De Amigo para Amigo — Primária','Recurso mundial para crianças e líderes da Primária.'],
   ['2027-06-10','Conferência de Educadores Religiosos','Transmissão em 10 e 11 de junho.'],
   ['2027-06-11','Conferência de Educadores Religiosos','Transmissão em 10 e 11 de junho.'],
+  ['2027-09-01','Período de declaração do dízimo','Os bispos conversam com membros entre setembro e dezembro.'],
   ['2027-09-04','Vídeo De Amigo para Amigo — Primária','Recurso mundial para crianças e líderes da Primária.'],
   ['2027-10-01','Encerramento da comemoração do Templo de Salt Lake','Evento mundial de encerramento.'],
   ['2027-10-02','Conferência Geral — sessões de sábado','Conferência Geral em 2 e 3 de outubro.'],
   ['2027-10-03','Conferência Geral — sessões de domingo','Conferência Geral em 2 e 3 de outubro.'],
   ['2027-11-07','Devocional Mundial para os Jovens Adultos','Transmissão mundial para jovens adultos.'],
+  ['2027-12-01','Época de Natal','Período de 1º a 25 de dezembro para atividades e serviços centralizados em Jesus Cristo.'],
   ['2027-12-05','Devocional de Natal da Primeira Presidência','Transmissão mundial de Natal.'],
   ['2027-12-19','Reunião sacramental especial de Natal — data sugerida','As alas podem realizar a reunião especial em 19 ou 26 de dezembro.'],
   ['2027-12-26','Reunião sacramental especial de Natal — data alternativa','As alas podem realizar a reunião especial em 19 ou 26 de dezembro.']
