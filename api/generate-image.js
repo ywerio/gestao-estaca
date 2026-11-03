@@ -11,6 +11,10 @@ export default async function handler(req,res){
     const profileRes=await fetch(supabaseUrl+"/rest/v1/profiles?id=eq."+encodeURIComponent(user.id)+"&select=status",{headers:{apikey:anonKey,Authorization:"Bearer "+token}});
     const profiles=profileRes.ok?await profileRes.json():[];
     if(!profiles.some(p=>p.status==="approved"))return res.status(403).json({error:"Somente usuários aprovados podem gerar imagens."});
+    const quota=await fetch(supabaseUrl+"/rest/v1/rpc/consume_image_generation_quota",{method:"POST",headers:{apikey:anonKey,Authorization:"Bearer "+token,"Content-Type":"application/json"},body:"{}"});
+    if(!quota.ok)return res.status(503).json({error:"O controle de uso ainda não está disponível. Aplique a migração de segurança do banco e tente novamente."});
+    const allowed=await quota.json().catch(()=>false);
+    if(allowed!==true)return res.status(429).json({error:"Limite de geração atingido: até 5 imagens por hora e 20 por dia por usuário. Tente novamente mais tarde."});
     const title=String(req.body?.title||"").slice(0,180);
     const body=String(req.body?.body||"").slice(0,900);
     if(!title&&!body)return res.status(400).json({error:"Informe o título ou o texto da publicação."});
