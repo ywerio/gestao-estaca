@@ -148,7 +148,7 @@ export default function ReadingPage({supabase,session,profile,onMessage=()=>{}})
   const {error:e}=await supabase.from('reading_settings').upsert({user_id:userId,...next,updated_at:new Date().toISOString()},{onConflict:'user_id'});
   setSaving(false);
   if(e){const item={id:Date.now()+Math.random(),type:'settings',settings:next};setQueue([...pendingRef.current.filter(x=>x.type!=='settings'),item]);setError('Configurações pendentes de sincronização: '+e.message);return false}
-  setQueue(pendingRef.current.filter(x=>x.type!=='settings));return true;
+  setQueue(pendingRef.current.filter(x=>x.type!=='settings'));return true;
  };
  const toggleChapter=async chapter=>{
   const key=chapter.book_key+':'+chapter.chapter,wasRead=progressMap.has(key),nextRead=!wasRead;
