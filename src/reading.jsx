@@ -40,7 +40,7 @@ function phraseCells(){
    glyph.forEach((row,ri)=>[...row].forEach((bit,xi)=>{if(bit==='1')points.push({x:startX+ci*advance+xi*7.2,y:4+lineIndex*49+ri*rowStep,w:7.2,h:7.2,region:'phrase-'+lineIndex})}));
    const accent=raw==='Á'?{x:startX+ci*advance+2*7.2,y:4+lineIndex*49-7.2,w:7.2,h:7.2,region:'phrase-'+lineIndex}:null;
    const target=targets[letterIndex++],regularTarget=target-(accent?1:0);
-   const chosen=points.length<=regularTarget?points:Array.from({length:regularTarget},(_,i)=>points[Math.floor(i*points.length/regularTarget)]);
+   const chosen=points.length>regularTarget?Array.from({length:regularTarget},(_,i)=>points[Math.floor(i*points.length/regularTarget)]):points.length===regularTarget?points:(()=>{const extra=regularTarget-points.length,split=new Set(Array.from({length:extra},(_,i)=>Math.floor(i*points.length/extra)));return points.flatMap((p,i)=>split.has(i)?[{...p,w:p.w/2},{...p,x:p.x+p.w/2,w:p.w/2}]:[p])})();
    all.push(...chosen);if(accent)all.push(accent);
    if(raw==='Ó')all.push({x:startX+ci*advance+2*7.2,y:4+lineIndex*49-7.2,w:7.2,h:7.2,region:'phrase-'+lineIndex});
   });
