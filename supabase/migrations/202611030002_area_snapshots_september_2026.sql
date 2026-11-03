@@ -26,7 +26,7 @@ using (
     select 1 from public.profiles p
     where p.id = auth.uid()
       and p.status = 'approved'
-      and (p.role = 'presidencia' or lower(p.email) = 'vargas.ywerio@gmail.com')
+      and (p.role in ('presidencia','admin') or lower(p.email) = 'vargas.ywerio@gmail.com')
   )
 )
 with check (
