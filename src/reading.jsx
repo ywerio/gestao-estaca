@@ -14,7 +14,7 @@ const TODAY=()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+
 const QUEUE_KEY=id=>'reading-pending:'+id;
 const parseQueue=id=>{try{return JSON.parse(localStorage.getItem(QUEUE_KEY(id))||'[]')}catch{return []}};
 const writeQueue=(id,items)=>{try{localStorage.setItem(QUEUE_KEY(id),JSON.stringify(items))}catch{}};
-const makeCells=(x,y,cols,rows,w,h,region)=>Array.from({length:cols*rows},(_,i)=>({x:x+(i%cols)*w,y:y+Math.floor(i/cols)*h,w:w-1.2,h:h-1.2,region}));
+const makeCells=(x,y,cols,rows,w,h,region)=>Array.from({length:cols*rows},(_,i)=>({x:x+(i%cols)*w,y:y+Math.floor(i/cols)*h,w,h,region}));
 const GLYPHS={
  J:['00111','00010','00010','00010','10010','10010','01100'],
  A:['01110','10001','10001','11111','10001','10001','10001'],
@@ -61,7 +61,7 @@ TEMPLE_ZONES.forEach(z=>{z.chapters=CHAPTERS.slice(cursor,cursor+z.count);cursor
 const CHAPEL_ZONES=[
  {id:'T',name:'Torre e pináculo',count:28,cells:makeCells(132,40,4,7,11,10,'T')},
  {id:'R',name:'Telhado e frontão',count:21,cells:makeCells(124,105,7,3,16,10,'R')},
- {id:'B',name:'Corpo da capela',count:144,cells:makeCells(0,122,18,8,20,8,'B')},
+ {id:'B',name:'Corpo da capela',count:144,cells:makeCells(80,122,18,8,11.1,7,'B')},
  {id:'L',name:'Ala esquerda',count:20,cells:makeCells(0,142,5,4,16,8,'L')},
  {id:'D',name:'Ala direita',count:20,cells:makeCells(280,142,5,4,16,8,'D')},
  {id:'S',name:'Base',count:6,cells:makeCells(132,178,6,1,16,5,'S')}
@@ -191,7 +191,7 @@ export default function ReadingPage({supabase,session,profile,onMessage=()=>{}})
   {TEMPLE_CELLS.map((cell,i)=>{const chapter=cell.chapter,read=progressMap.has(chapter.book_key+':'+chapter.chapter),zone=TEMPLE_ZONES.find(z=>z.id===cell.region);return <rect key={i} x={cell.x} y={cell.y} width={cell.w} height={cell.h} rx="1" fill={read?settings.active_color:'#fff'} stroke={read?settings.active_color:'#9baca1'} strokeWidth=".8" className="reading-cell" onClick={()=>openRegion(cell.region,zone.name,zone.chapters)}/>})}
  </svg>;
  const renderChapel=()=> <svg className="reading-art chapel-art" viewBox="0 0 360 230" role="img" aria-label="Logo oficial da Estaca Horto dividida em 239 capítulos">
-  <defs><clipPath id="chapel-tower"><polygon points="128,35 180,35 180,112 128,112"/></clipPath><clipPath id="chapel-roof"><polygon points="90,122 180,82 270,122 270,140 90,140"/></clipPath><clipPath id="chapel-body"><polygon points="0,122 360,122 360,180 0,180"/></clipPath><clipPath id="chapel-left"><polygon points="0,140 100,140 100,180 0,180"/></clipPath><clipPath id="chapel-right"><polygon points="280,140 360,140 360,180 280,180"/></clipPath><clipPath id="chapel-base"><polygon points="0,178 360,178 360,184 0,184"/></clipPath></defs><image href="/logo-estaca.svg" x="0" y="0" width="360" height="230" opacity=".62" pointerEvents="none"/>
+  <defs><clipPath id="chapel-tower"><polygon points="128,35 180,35 180,112 128,112"/></clipPath><clipPath id="chapel-roof"><polygon points="90,122 180,82 270,122 270,140 90,140"/></clipPath><clipPath id="chapel-body"><polygon points="80,122 280,122 280,178 80,178"/></clipPath><clipPath id="chapel-left"><polygon points="0,140 80,140 80,178 0,178"/></clipPath><clipPath id="chapel-right"><polygon points="280,140 360,140 360,178 280,178"/></clipPath><clipPath id="chapel-base"><polygon points="128,178 232,178 232,184 128,184"/></clipPath></defs><image href="/logo-estaca.svg" x="0" y="0" width="360" height="230" opacity=".62" pointerEvents="none"/>
   {CHAPEL_ZONES.map(zone=><g key={zone.id} clipPath={`url(#chapel-${({T:'tower',R:'roof',B:'body',L:'left',D:'right',S:'base'})[zone.id]})`}>{zone.cells.map((cell,i)=>{const chapter=CHAPTERS[CHAPEL_ZONES.slice(0,CHAPEL_ZONES.indexOf(zone)).reduce((n,z)=>n+z.count,0)+i],read=progressMap.has(chapter.book_key+':'+chapter.chapter);return <rect key={i} x={cell.x} y={cell.y} width={cell.w} height={cell.h} fill={read?settings.active_color:'#ffffff'} fillOpacity={read ? 0.9 : 0.48} stroke={read?settings.active_color:'#82988c'} strokeWidth=".6" className="reading-cell" onClick={()=>openRegion(zone.id,zone.name,zone.chapters)}/>})}</g>)}
  </svg>;
  const currentLayout=settings.layout||'frase';
