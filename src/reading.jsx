@@ -118,6 +118,15 @@ export default function ReadingPage({supabase,session,profile,onMessage=()=>{}})
   finally{setLoading(false)}
  },[userId,supabase]);
  useEffect(()=>{load()},[load]);
+ const reconcileDates=async(base)=>{
+  const {count,error:countError}=await supabase.from('reading_progress').select('chapter',{count:'exact',head:true}).eq('user_id',userId);
+  if(countError)return;
+  const next={...base,started_on:base.started_on||(count>0?TODAY():null),finished_on:count===TOTAL?(base.finished_on||TODAY()):null};
+  setSettings(next);
+  const {error:saveError}=await supabase.from('reading_settings').upsert({user_id:userId,...next,updated_at:new Date().toISOString()},{onConflict:'user_id'});
+  if(saveError){const item={id:Date.now()+Math.random(),type:'settings',settings:next};setQueue([...pendingRef.current.filter(x=>x.type!=='settings'),item]);}
+  else setQueue(pendingRef.current.filter(x=>x.type!=='settings'));
+ };
  const flushPending=useCallback(async()=>{
   if(!userId||!supabase||!navigator.onLine||syncLock.current||!pendingRef.current.length)return;
   syncLock.current=true;setSyncing(true);
@@ -131,8 +140,8 @@ export default function ReadingPage({supabase,session,profile,onMessage=()=>{}})
    remaining=remaining.filter(x=>x.id!==item.id);setQueue(remaining);
   }
   syncLock.current=false;setSyncing(false);
-  if(!remaining.length){onMessage('Leitura sincronizada com o Supabase.');}
- },[userId,supabase,onMessage]);
+  if(!remaining.length){await reconcileDates(settings);onMessage('Leitura sincronizada com o Supabase.');}
+ },[userId,supabase,onMessage,settings]);
  useEffect(()=>{const online=()=>flushPending();window.addEventListener('online',online);const id=window.setInterval(()=>flushPending(),15000);return()=>{window.removeEventListener('online',online);window.clearInterval(id)}},[flushPending]);
  const saveSettings=async next=>{
   setSettings(next);setSaving(true);
@@ -154,7 +163,7 @@ export default function ReadingPage({supabase,session,profile,onMessage=()=>{}})
   setQueue(nextQueue);
   if(navigator.onLine){
    const result=nextRead?await supabase.from('reading_progress').upsert(row,{onConflict:'user_id,book_key,chapter'}):await supabase.from('reading_progress').delete().eq('user_id',userId).eq('book_key',chapter.book_key).eq('chapter',chapter.chapter);
-   if(!result.error)setQueue(pendingRef.current.filter(x=>x.id!==item.id));
+   if(!result.error){setQueue(pendingRef.current.filter(x=>x.id!==item.id));await reconcileDates(nextSettings);}
    else setError('Marcação pendente de sincronização: '+result.error.message);
   }else setError('Sem conexão: marcação pendente no aparelho, ainda não confirmada pelo Supabase.');
   const {error:settingsError}=await supabase.from('reading_settings').upsert({user_id:userId,...nextSettings,updated_at:new Date().toISOString()},{onConflict:'user_id'});
