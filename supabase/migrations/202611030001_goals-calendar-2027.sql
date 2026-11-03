@@ -222,15 +222,17 @@ values
 ('church-2027-21','2027-12-05','Devocional de Natal da Primeira Presidência','Transmissão mundial de Natal.','geral','Transmissão mundial / Igreja'),
 ('church-2027-22','2027-12-19','Reunião sacramental especial de Natal — data sugerida','As alas podem realizar a reunião especial em 19 ou 26 de dezembro.','geral','Transmissão mundial / Igreja'),
 ('church-2027-23','2027-12-26','Reunião sacramental especial de Natal — data alternativa','As alas podem realizar a reunião especial em 19 ou 26 de dezembro.','geral','Transmissão mundial / Igreja')
-insert into public.events(source_key,event_date,title,description,unit_type,location) values
-('church-2027-extra-1','2027-01-01','Início do estudo do Novo Testamento — Vem, e Segue-Me','Estudo do Novo Testamento ao longo de todo o ano de 2027.','geral','Transmissão mundial / Igreja'),
-('church-2027-extra-2','2027-01-01','Atualização dos horários das reuniões','Ação para bispados e secretários quando houver alteração dos horários da unidade.','geral','Transmissão mundial / Igreja'),
-('church-2027-extra-3','2027-04-10','Abertura da comemoração do Templo de Salt Lake','Evento especial com música e apresentações na comemoração do templo.','geral','Transmissão mundial / Igreja'),
-('church-2027-extra-4','2027-05-01','Ao vivo da Praça do Templo','Série de transmissões de maio a outubro, com horários conforme cada área.','geral','Transmissão mundial / Igreja'),
-('church-2027-extra-5','2027-09-01','Período de declaração do dízimo','Os bispos conversam com membros entre setembro e dezembro.','geral','Transmissão mundial / Igreja'),
-('church-2027-extra-6','2027-12-01','Época de Natal','Período de 1º a 25 de dezembro para atividades e serviços centralizados em Jesus Cristo.','geral','Transmissão mundial / Igreja')
-on conflict(source_key) where source_key is not null do update set event_date=excluded.event_date,title=excluded.title,description=excluded.description,unit_type=excluded.unit_type,location=excluded.location;
+on conflict(source_key) where source_key is not null
+do update set event_date=excluded.event_date,title=excluded.title,description=excluded.description,unit_type=excluded.unit_type,location=excluded.location;
 
+insert into public.events(source_key,event_date,title,description,unit_type,location)
+values
+('church-2027-extra-01','2027-01-01','Início do estudo do Novo Testamento — Vem, e Segue-Me','Estudo do Novo Testamento ao longo de todo o ano de 2027.','geral','Transmissão mundial / Igreja'),
+('church-2027-extra-02','2027-01-01','Atualização dos horários das reuniões','Ação para bispados e secretários quando houver alteração dos horários da unidade.','geral','Transmissão mundial / Igreja'),
+('church-2027-extra-03','2027-04-10','Abertura da comemoração do Templo de Salt Lake','Evento especial com música e apresentações na comemoração do templo.','geral','Transmissão mundial / Igreja'),
+('church-2027-extra-04','2027-05-01','Ao vivo da Praça do Templo','Série de transmissões de maio a outubro, com horários conforme cada área.','geral','Transmissão mundial / Igreja'),
+('church-2027-extra-05','2027-09-01','Período de declaração do dízimo','Os bispos conversam com membros entre setembro e dezembro.','geral','Transmissão mundial / Igreja'),
+('church-2027-extra-06','2027-12-01','Época de Natal','Período de 1º a 25 de dezembro para atividades e serviços centralizados em Jesus Cristo.','geral','Transmissão mundial / Igreja')
 on conflict(source_key) where source_key is not null
 do update set event_date=excluded.event_date,title=excluded.title,description=excluded.description,unit_type=excluded.unit_type,location=excluded.location;
 
