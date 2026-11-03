@@ -111,7 +111,7 @@ export default function ReadingPage({supabase,session,profile,onMessage=()=>{}})
     const {error:dateError}=await supabase.from('reading_settings').upsert({user_id:userId,...corrected,updated_at:new Date().toISOString()},{onConflict:'user_id'});
     if(dateError)setError('As datas de início/conclusão precisam ser sincronizadas: '+dateError.message);
    }
-  }catch(e){setError('Não foi possível consultar o Supabase. Confira se o SQL da Leitura já foi aplicado. '+(e.message||''));setProgress(applyQueue([],localQueue));}
+  }catch(e){setError('Não foi possível consultar o Supabase. Confira se o SQL da Leitura já foi aplicado. '+(e.message||''));setProgress(applyQueue([],localQueue));const queuedSettings=localQueue.filter(x=>x.type==='settings').at(-1)?.settings;if(queuedSettings)setSettings(v=>({...v,...queuedSettings}));}
   finally{setLoading(false)}
  },[userId,supabase]);
  useEffect(()=>{load()},[load]);
@@ -177,7 +177,7 @@ export default function ReadingPage({supabase,session,profile,onMessage=()=>{}})
  </svg>;
  const renderChapel=()=> <svg className="reading-art chapel-art" viewBox="0 0 360 230" role="img" aria-label="Logo oficial da Estaca Horto dividida em 239 capítulos">
   <image href="/logo-estaca.svg" x="0" y="0" width="360" height="230" opacity=".62"/>
-  {CHAPEL_CELLS.map((cell,i)=>{const chapter=cell.chapter,read=progressMap.has(chapter.book_key+':'+chapter.chapter),zone=CHAPEL_ZONES.find(z=>z.id===cell.region);return <rect key={i} x={cell.x} y={cell.y} width={cell.w} height={cell.h} rx="1" fill={read?settings.active_color:'#ffffff'} fillOpacity={read?.9:.48} stroke={read?settings.active_color:'#82988c'} strokeWidth=".6" className="reading-cell" onClick={()=>openRegion(cell.region,zone.name,zone.chapters)}/>})}
+  {CHAPEL_CELLS.map((cell,i)=>{const chapter=cell.chapter,read=progressMap.has(chapter.book_key+':'+chapter.chapter),zone=CHAPEL_ZONES.find(z=>z.id===cell.region);return <rect key={i} x={cell.x} y={cell.y} width={cell.w} height={cell.h} rx="1" fill={read?settings.active_color:'#ffffff'} fillOpacity={read ? 0.9 : 0.48} stroke={read?settings.active_color:'#82988c'} strokeWidth=".6" className="reading-cell" onClick={()=>openRegion(cell.region,zone.name,zone.chapters)}/>})}
  </svg>;
  const currentLayout=settings.layout||'frase';
  const regions=currentLayout==='templo'?TEMPLE_ZONES:currentLayout==='capela'?CHAPEL_ZONES:null;
