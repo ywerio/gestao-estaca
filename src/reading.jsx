@@ -155,20 +155,21 @@ export default function ReadingPage({supabase,session,profile,onMessage=()=>{}})
   const now=TODAY(),nextRows=nextRead?[...progress.filter(p=>p.book_key!==chapter.book_key||p.chapter!==chapter.chapter),{user_id:userId,book_key:chapter.book_key,chapter:chapter.chapter,color:settings.active_color,read_on:now}]:progress.filter(p=>p.book_key!==chapter.book_key||p.chapter!==chapter.chapter);
   setProgress(nextRows);
   const nextSettings={...settings,started_on:settings.started_on||now,finished_on:settings.finished_on};
-  if(nextRows.length===TOTAL&&!settings.finished_on)nextSettings.finished_on=now;
   setSettings(nextSettings);
   const row={user_id:userId,book_key:chapter.book_key,chapter:chapter.chapter,color:settings.active_color,read_on:now};
   const item=nextRead?{id:Date.now()+Math.random(),type:'upsert',row}:{id:Date.now()+Math.random(),type:'delete',book_key:chapter.book_key,chapter:chapter.chapter};
   const nextQueue=[...pendingRef.current.filter(x=>!(x.type==='upsert'?x.row.book_key===chapter.book_key&&x.row.chapter===chapter.chapter:x.book_key===chapter.book_key&&x.chapter===chapter.chapter)),item];
   setQueue(nextQueue);
+  let progressConfirmed=false;
   if(navigator.onLine){
    const result=nextRead?await supabase.from('reading_progress').upsert(row,{onConflict:'user_id,book_key,chapter'}):await supabase.from('reading_progress').delete().eq('user_id',userId).eq('book_key',chapter.book_key).eq('chapter',chapter.chapter);
-   if(!result.error){setQueue(pendingRef.current.filter(x=>x.id!==item.id));await reconcileDates(nextSettings);}
+   if(!result.error){progressConfirmed=true;setQueue(pendingRef.current.filter(x=>x.id!==item.id));await reconcileDates(nextSettings);}
    else setError('Marcação pendente de sincronização: '+result.error.message);
   }else setError('Sem conexão: marcação pendente no aparelho, ainda não confirmada pelo Supabase.');
-  if(!pendingRef.current.length&&navigator.onLine)await reconcileDates(nextSettings);
-  const {error:settingsError}=await supabase.from('reading_settings').upsert({user_id:userId,...nextSettings,updated_at:new Date().toISOString()},{onConflict:'user_id'});
-  if(settingsError){const item={id:Date.now()+Math.random(),type:'settings',settings:nextSettings};setQueue([...pendingRef.current.filter(x=>x.type!=='settings'),item]);setError('Progresso marcado, mas as datas/configurações aguardam sincronização: '+settingsError.message);}
+  if(!progressConfirmed){
+   const {error:settingsError}=await supabase.from('reading_settings').upsert({user_id:userId,...nextSettings,updated_at:new Date().toISOString()},{onConflict:'user_id'});
+   if(settingsError){const settingsItem={id:Date.now()+Math.random(),type:'settings',settings:nextSettings};setQueue([...pendingRef.current.filter(x=>x.type!=='settings'),settingsItem]);setError('Progresso marcado, mas as datas/configurações aguardam sincronização: '+settingsError.message);}
+  }
  };
  const colorChapter=async(chapter,color)=>{
   const row={user_id:userId,book_key:chapter.book_key,chapter:chapter.chapter,color,read_on:TODAY()};
@@ -221,8 +222,11 @@ export default function ReadingPage({supabase,session,profile,onMessage=()=>{}})
     remaining=remaining.filter(x=>x.id!==item.id);setQueue(remaining);
    }
   }else setError('Sem conexão: alterações da região aguardam confirmação do Supabase.');
-  const {error:settingsError}=await supabase.from('reading_settings').upsert({user_id:userId,...nextSettings,updated_at:new Date().toISOString()},{onConflict:'user_id'});
-  if(settingsError){const item={id:Date.now()+Math.random(),type:'settings',settings:nextSettings};setQueue([...pendingRef.current.filter(x=>x.type!=='settings'),item]);setError('Datas do progresso aguardam sincronização: '+settingsError.message);}
+  if(!pendingRef.current.length&&navigator.onLine)await reconcileDates(nextSettings);
+  else{
+   const {error:settingsError}=await supabase.from('reading_settings').upsert({user_id:userId,...nextSettings,updated_at:new Date().toISOString()},{onConflict:'user_id'});
+   if(settingsError){const settingsItem={id:Date.now()+Math.random(),type:'settings',settings:nextSettings};setQueue([...pendingRef.current.filter(x=>x.type!=='settings'),settingsItem]);setError('Datas do progresso aguardam sincronização: '+settingsError.message);}
+  }
  };
  const goalText=()=>{
   if(!settings.goal_on)return 'Defina uma data-meta para acompanhar seu ritmo.';
