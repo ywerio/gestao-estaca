@@ -81,3 +81,7 @@
 .modal h2{padding-right:42px}
 .overlay{cursor:pointer}
 .modal{cursor:default}
+
+
+/* Campo de mês do lançamento mensal: mês e ano centralizados */
+.month-field{display:grid;gap:6px;width:100%;text-align:center}.month-field>span{font-size:12px;color:#668476;font-weight:600}.month-field input[type="month"]{display:block;width:100%;min-width:0;box-sizing:border-box;text-align:center;text-align-last:center;padding:12px 14px}.month-field input[type="month"]::-webkit-datetime-edit{text-align:center}.month-field input[type="month"]::-webkit-calendar-picker-indicator{margin-left:8px}
