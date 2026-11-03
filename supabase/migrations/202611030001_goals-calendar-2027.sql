@@ -167,7 +167,7 @@ insert into public.goal_targets(ward_name,year,indicator_key,target) values
 ('Uruguai',2027,'Missionários do Brasil',7),
 ('Uruguai',2027,'Recomendações do templo com investidura',45),
 ('Uruguai',2027,'Recomendações do templo sem investidura',60)
-on conflict(ward_name,year,indicator_key) do update set target=excluded.target;
+on conflict(ward_name,year,indicator_key) do nothing;
 
 -- Calendário: mantém compromissos existentes e acrescenta campos opcionais à agenda pessoal.
 alter table public.personal_events add column if not exists event_time text;
