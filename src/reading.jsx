@@ -44,6 +44,7 @@ function phraseCells(){
  return Array.from({length:TOTAL},(_,i)=>all[Math.floor(i*all.length/TOTAL)]);
 }
 const PHRASE_CELLS=phraseCells();
+const PHRASE_REGIONS=[0,1,2].map(i=>({id:'phrase-'+i,name:['JÁ LI O','LIVRO DE','MÓRMON'][i],chapters:PHRASE_CELLS.flatMap((cell,index)=>cell.region==='phrase-'+i?[CHAPTERS[index]]:[])}));
 const TEMPLE_ZONES=[
  {id:'A',name:'Pináculo',count:9,cells:makeCells(174,18,1,9,12,10,'A')},
  {id:'B',name:'Torre',count:18,cells:makeCells(162,112,2,9,18,20,'B')},
@@ -101,10 +102,15 @@ export default function ReadingPage({supabase,session,profile,onMessage=()=>{}})
     supabase.from('reading_settings').select('active_color,layout,started_on,goal_on,finished_on').eq('user_id',userId).maybeSingle()
    ]);
    if(p.error)throw p.error;if(s.error)throw s.error;
-   const serverRows=p.data||[];
-   setProgress(applyQueue(serverRows,localQueue));
-   if(s.data)setSettings(v=>({...v,...s.data}));
-   else setSettings(v=>({...v,started_on:serverRows.length?TODAY():null,finished_on:serverRows.length===TOTAL?TODAY():null}));
+   const serverRows=p.data||[],visibleRows=applyQueue(serverRows,localQueue);
+   setProgress(visibleRows);
+   const stored=s.data||{active_color:COLORS[0],layout:'frase',started_on:null,goal_on:null,finished_on:null};
+   const corrected={...stored,started_on:visibleRows.length&&!stored.started_on?TODAY():stored.started_on,finished_on:visibleRows.length===TOTAL?(stored.finished_on||TODAY()):null};
+   setSettings(corrected);
+   if(JSON.stringify(corrected)!==JSON.stringify(stored)){
+    const {error:dateError}=await supabase.from('reading_settings').upsert({user_id:userId,...corrected,updated_at:new Date().toISOString()},{onConflict:'user_id'});
+    if(dateError)setError('As datas de início/conclusão precisam ser sincronizadas: '+dateError.message);
+   }
   }catch(e){setError('Não foi possível consultar o Supabase. Confira se o SQL da Leitura já foi aplicado. '+(e.message||''));setProgress(applyQueue([],localQueue));}
   finally{setLoading(false)}
  },[userId,supabase]);
@@ -161,7 +167,7 @@ export default function ReadingPage({supabase,session,profile,onMessage=()=>{}})
   const lines=['JÁ LI O','LIVRO DE','MÓRMON'];
   return <svg className="reading-art phrase-art" viewBox="0 0 360 210" role="img" aria-label="Frase Já li o Livro de Mórmon formada por 239 capítulos">
    {lines.map((line,i)=><text key={line} x="180" y={59+i*69} textAnchor="middle" className="phrase-label">{line}</text>)}
-   {PHRASE_CELLS.map((cell,i)=>{const chapter=CHAPTERS[i],read=progressMap.has(chapter.book_key+':'+chapter.chapter),region='phrase-'+Math.min(2,Math.floor(i/(TOTAL/3)));return <rect key={i} x={cell.x} y={cell.y} width={cell.w} height={cell.h} rx="1" fill={read?settings.active_color:'#fff'} stroke={read?settings.active_color:'#9baca1'} strokeWidth=".8" onClick={()=>openRegion(region,lines[Number(region.split('-')[1])],CHAPTERS.filter((_,j)=>Math.min(2,Math.floor(j/(TOTAL/3)))===Number(region.split('-')[1])))} className="reading-cell" aria-label={chapter.book_name+' capítulo '+chapter.chapter}/>})}
+   {PHRASE_CELLS.map((cell,i)=>{const chapter=CHAPTERS[i],read=progressMap.has(chapter.book_key+':'+chapter.chapter),region=PHRASE_REGIONS.find(r=>r.id===cell.region);return <rect key={i} x={cell.x} y={cell.y} width={cell.w} height={cell.h} rx="1" fill={read?settings.active_color:'#fff'} stroke={read?settings.active_color:'#9baca1'} strokeWidth=".8" onClick={()=>openRegion(region.id,region.name,region.chapters)} className="reading-cell" aria-label={chapter.book_name+' capítulo '+chapter.chapter}/>})}
   </svg>
  };
  const renderTemple=()=> <svg className="reading-art temple-art" viewBox="0 0 360 560" role="img" aria-label="Templo de Teresina dividido em 239 capítulos">
@@ -176,7 +182,34 @@ export default function ReadingPage({supabase,session,profile,onMessage=()=>{}})
  const regions=currentLayout==='templo'?TEMPLE_ZONES:currentLayout==='capela'?CHAPEL_ZONES:null;
  const activeRegionData=activeRegion;
  const regionDone=activeRegionData?.chapters.filter(c=>progressMap.has(c.book_key+':'+c.chapter)).length||0;
- const bulk=async(chapters,read)=>{for(const c of chapters){if(progressMap.has(c.book_key+':'+c.chapter)!==read)await toggleChapter(c)}};
+ const bulk=async(chapters,read)=>{
+  const selected=new Set(chapters.map(c=>c.book_key+':'+c.chapter));
+  const current=new Map(progress.map(p=>[p.book_key+':'+p.chapter,p]));
+  const now=TODAY(),nextRows=progress.filter(p=>!selected.has(p.book_key+':'+p.chapter));
+  const ops=[];
+  chapters.forEach(ch=>{
+   const key=ch.book_key+':'+ch.chapter,exists=current.has(key);
+   if(read&&!exists){const row={user_id:userId,book_key:ch.book_key,chapter:ch.chapter,color:settings.active_color,read_on:now};nextRows.push(row);ops.push({type:'upsert',row});}
+   if(!read&&exists)ops.push({type:'delete',book_key:ch.book_key,chapter:ch.chapter});
+  });
+  if(!ops.length)return;
+  setProgress(nextRows);
+  const nextSettings={...settings,started_on:settings.started_on||(read?now:null),finished_on:read&&nextRows.length===TOTAL?now:nextRows.length<TOTAL?null:settings.finished_on};
+  setSettings(nextSettings);
+  let queue=[...pendingRef.current];
+  for(const op of ops){const key=op.type==='upsert'?op.row.book_key+':'+op.row.chapter:op.book_key+':'+op.chapter;queue=queue.filter(x=>(x.type==='upsert'?x.row.book_key+':'+x.row.chapter:x.book_key+':'+x.chapter)!==key);queue.push({id:Date.now()+Math.random(),...op});}
+  setQueue(queue);
+  if(navigator.onLine){
+   let remaining=[...queue];
+   for(const item of queue){
+    const result=item.type==='upsert'?await supabase.from('reading_progress').upsert(item.row,{onConflict:'user_id,book_key,chapter'}):await supabase.from('reading_progress').delete().eq('user_id',userId).eq('book_key',item.book_key).eq('chapter',item.chapter);
+    if(result.error){setError('Algumas marcações da região aguardam sincronização: '+result.error.message);break;}
+    remaining=remaining.filter(x=>x.id!==item.id);setQueue(remaining);
+   }
+  }else setError('Sem conexão: alterações da região aguardam confirmação do Supabase.');
+  const {error:settingsError}=await supabase.from('reading_settings').upsert({user_id:userId,...nextSettings,updated_at:new Date().toISOString()},{onConflict:'user_id'});
+  if(settingsError)setError('Datas do progresso aguardam sincronização: '+settingsError.message);
+ };
  const goalText=()=>{
   if(!settings.goal_on)return 'Defina uma data-meta para acompanhar seu ritmo.';
   const remain=TOTAL-done,goal=new Date(settings.goal_on+'T12:00:00'),today=new Date(TODAY()+'T12:00:00'),days=Math.ceil((goal-today)/86400000);
