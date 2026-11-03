@@ -1,5 +1,6 @@
 import React,{useCallback,useEffect,useMemo,useRef,useState} from 'react';
 import './reading.css';
+import READING_GEOMETRY from './reading-geometry.json';
 
 const BOOKS=[
  ['1ne','1 Néfi',22],['2ne','2 Néfi',33],['jac','Jacó',7],['eno','Enos',1],
@@ -14,62 +15,12 @@ const TODAY=()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+
 const QUEUE_KEY=id=>'reading-pending:'+id;
 const parseQueue=id=>{try{return JSON.parse(localStorage.getItem(QUEUE_KEY(id))||'[]')}catch{return []}};
 const writeQueue=(id,items)=>{try{localStorage.setItem(QUEUE_KEY(id),JSON.stringify(items))}catch{}};
-const makeCells=(x,y,cols,rows,w,h,region)=>Array.from({length:cols*rows},(_,i)=>({x:x+(i%cols)*w,y:y+Math.floor(i/cols)*h,w,h,region}));
-const GLYPHS={
- J:['00111','00010','00010','00010','10010','10010','01100'],
- A:['01110','10001','10001','11111','10001','10001','10001'],
- L:['10000','10000','10000','10000','10000','10000','11111'],
- I:['11111','00100','00100','00100','00100','00100','11111'],
- O:['01110','10001','10001','10001','10001','10001','01110'],
- V:['10001','10001','10001','10001','10001','01010','00100'],
- R:['11110','10001','10001','11110','10100','10010','10001'],
- D:['11110','10001','10001','10001','10001','10001','11110'],
- E:['11111','10000','10000','11110','10000','10000','11111'],
- M:['10001','11011','10101','10101','10001','10001','10001'],
- N:['10001','11001','10101','10011','10001','10001','10001']
-};
-function phraseCells(){
- const lines=['JÁ LI O','LIVRO','DE','MÓRMON'],targets=[11,11,14,7,12,11,11,18,19,11,17,16,16,16,14,9,15,10],all=[];
- let letterIndex=0;
- lines.forEach((line,lineIndex)=>{
-  const chars=[...line],advance=40,rowStep=7.2,totalWidth=chars.length*advance-8,startX=(360-totalWidth)/2;
-  chars.forEach((raw,ci)=>{
-   if(raw===' ')return;
-   const ch=raw.normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-   const glyph=GLYPHS[ch]||GLYPHS.O,points=[];
-   glyph.forEach((row,ri)=>[...row].forEach((bit,xi)=>{if(bit==='1')points.push({x:startX+ci*advance+xi*7.2,y:4+lineIndex*49+ri*rowStep,w:7.2,h:7.2,region:'phrase-'+lineIndex})}));
-   const accent=raw==='Á'?{x:startX+ci*advance+2*7.2,y:4+lineIndex*49-7.2,w:7.2,h:7.2,region:'phrase-'+lineIndex}:null;
-   const target=targets[letterIndex++],regularTarget=target-(accent?1:0);
-   const chosen=points.length>regularTarget?Array.from({length:regularTarget},(_,i)=>points[Math.floor(i*points.length/regularTarget)]):points.length===regularTarget?points:(()=>{const extra=regularTarget-points.length,split=new Set(Array.from({length:extra},(_,i)=>Math.floor(i*points.length/extra)));return points.flatMap((p,i)=>split.has(i)?[{...p,w:p.w/2},{...p,x:p.x+p.w/2,w:p.w/2}]:[p])})();
-   all.push(...chosen);if(accent)all.push(accent);
-   if(raw==='Ó')all.push({x:startX+ci*advance+2*7.2,y:4+lineIndex*49-7.2,w:7.2,h:7.2,region:'phrase-'+lineIndex});
-  });
- });
- if(all.length!==TOTAL)throw new Error('A frase precisa conter exatamente 239 células; foram geradas '+all.length);
- return all;
-}
-const PHRASE_CELLS=phraseCells();
+const PHRASE_CELLS=READING_GEOMETRY.phrase;
 const PHRASE_REGIONS=[0,1,2,3].map(i=>({id:'phrase-'+i,name:['JÁ LI O','LIVRO','DE','MÓRMON'][i],chapters:PHRASE_CELLS.flatMap((cell,index)=>cell.region==='phrase-'+i?[CHAPTERS[index]]:[])}));
-const TEMPLE_ZONES=[
- {id:'A',name:'Pináculo',count:6,cells:[{x:176,y:14,w:8,h:11},{x:174,y:25,w:12,h:11},{x:172,y:36,w:16,h:11},{x:170,y:47,w:20,h:11},{x:168,y:58,w:24,h:11},{x:166,y:69,w:28,h:11}].map(v=>({...v,region:'A'}))},
- {id:'B',name:'Torre superior',count:8,cells:makeCells(162,80,2,4,18,16,'B')},
- {id:'C',name:'Torre inferior',count:16,cells:makeCells(144,144,4,4,18,16,'C')},
- {id:'D',name:'Corpo central',count:120,cells:makeCells(110,210,10,12,14,14,'D')},
- {id:'E',name:'Ala esquerda',count:25,cells:makeCells(40,245,5,5,14,14,'E')},
- {id:'F',name:'Ala direita',count:25,cells:makeCells(250,245,5,5,14,14,'F')},
- {id:'G',name:'Pórtico',count:15,cells:makeCells(145,378,5,3,14,14,'G')},
- {id:'H',name:'Escadaria',count:24,cells:makeCells(72,420,12,2,18,12,'H')}
-];
+const TEMPLE_ZONES=READING_GEOMETRY.temple.map(z=>({...z,chapters:[]}));
+const CHAPEL_ZONES=READING_GEOMETRY.chapel.map(z=>({...z,chapters:[]}));
 let cursor=0;
 TEMPLE_ZONES.forEach(z=>{z.chapters=CHAPTERS.slice(cursor,cursor+z.count);cursor+=z.count;});
-const CHAPEL_ZONES=[
- {id:'T',name:'Torre e pináculo',count:28,cells:makeCells(132,40,4,7,11,10,'T')},
- {id:'R',name:'Telhado e frontão',count:21,cells:makeCells(108,108,7,3,12,6,'R')},
- {id:'B',name:'Corpo da capela',count:144,cells:makeCells(80,140,18,8,11.1,4.75,'B')},
- {id:'L',name:'Ala esquerda',count:20,cells:makeCells(0,142,5,4,16,8,'L')},
- {id:'D',name:'Ala direita',count:20,cells:makeCells(280,142,5,4,16,8,'D')},
- {id:'S',name:'Base',count:6,cells:makeCells(132,178,6,1,16,5,'S')}
-];
 cursor=0;
 CHAPEL_ZONES.forEach(z=>{z.chapters=CHAPTERS.slice(cursor,cursor+z.count);cursor+=z.count;});
 function buildTempleCells(){let i=0;return TEMPLE_ZONES.flatMap(z=>z.cells.map(cell=>({...cell,chapter:CHAPTERS[i++],region:z.id})))}
