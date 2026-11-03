@@ -74,6 +74,27 @@ returns boolean language sql stable security definer set search_path=public,auth
   );
 $$;
 
+-- Funções auxiliares: não devem ser endpoints RPC públicos.
+revoke all on function public.is_presidency() from public,anon;
+revoke all on function public.is_stake_secretary() from public,anon;
+revoke all on function public.is_approved_ward_leader(text) from public,anon;
+revoke all on function public.is_admin() from public,anon;
+revoke all on function public.approved() from public,anon;
+revoke all on function public.can_ward(text) from public,anon;
+revoke all on function public.can_manage_ward(text) from public,anon;
+revoke all on function public.can_manage_stake_events() from public,anon;
+revoke all on function public.can_read_post(uuid) from public,anon;
+grant execute on function public.is_presidency() to authenticated;
+grant execute on function public.is_stake_secretary() to authenticated;
+grant execute on function public.is_approved_ward_leader(text) to authenticated;
+grant execute on function public.is_admin() to authenticated;
+grant execute on function public.approved() to authenticated;
+grant execute on function public.can_ward(text) to authenticated;
+grant execute on function public.can_manage_ward(text) to authenticated;
+grant execute on function public.can_manage_stake_events() to authenticated;
+grant execute on function public.can_read_post(uuid) to authenticated;
+revoke all on function public.new_profile() from public,anon,authenticated;
+
 -- 2) Impedir que o cadastro escolha a própria unidade ou papel.
 create or replace function public.new_profile()
 returns trigger language plpgsql security definer set search_path=public,auth as $$
@@ -90,6 +111,22 @@ begin
   return new;
 end;
 $$;
+
+-- 2.1) Completar a estrutura que o frontend já utiliza e que ainda não existia no banco.
+alter table public.posts add column if not exists leaders_only boolean not null default false;
+
+create table if not exists public.weekly_indicator_entries(
+  id uuid primary key default gen_random_uuid(),
+  ward_name text not null references public.wards(name),
+  metric_name text not null,
+  value numeric not null default 0 check(value >= 0),
+  week_date date not null,
+  updated_by uuid references public.profiles(id),
+  updated_at timestamptz not null default now(),
+  constraint weekly_indicator_entries_ward_metric_week_key unique(ward_name,metric_name,week_date)
+);
+alter table public.weekly_indicator_entries enable row level security;
+grant select,insert,update,delete on public.weekly_indicator_entries to authenticated;
 
 -- 3) Recriar políticas nas tabelas críticas. Remover políticas antigas evita permissões OR inesperadas.
 do $$
@@ -380,8 +417,20 @@ for delete to authenticated using(
 drop policy if exists "Authors update own post images" on storage.objects;
 create policy "Authors update own post images" on storage.objects
 for update to authenticated
-using(bucket_id='post-images' and (storage.foldername(name))[1]=auth.uid()::text)
-with check(bucket_id='post-images' and (storage.foldername(name))[1]=auth.uid()::text);
+using(
+  bucket_id='post-images'
+  and (storage.foldername(name))[1]=auth.uid()::text
+  and exists(select 1 from public.profiles p where p.id=auth.uid() and p.status='approved'
+    and (lower(p.email)='vargas.ywerio@gmail.com' or p.role in ('presidencia','secretaria','bishop','counselor','secretary')))
+)
+with check(
+  bucket_id='post-images'
+  and (storage.foldername(name))[1]=auth.uid()::text
+  and exists(select 1 from public.profiles p where p.id=auth.uid() and p.status='approved'
+    and (lower(p.email)='vargas.ywerio@gmail.com' or p.role in ('presidencia','secretaria','bishop','counselor','secretary')))
+);
+
+revoke all on function public.write_audit_log() from public,anon,authenticated;
 
 -- 8) Revoke access to privileged audit/quota tables and refresh PostgREST metadata.
 revoke all on public.audit_logs from anon;
