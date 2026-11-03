@@ -29,20 +29,24 @@ const GLYPHS={
  N:['10001','11001','10101','10011','10001','10001','10001']
 };
 function phraseCells(){
- const lines=['JÁ LI O','LIVRO','DE','MÓRMON'],all=[];
+ const lines=['JÁ LI O','LIVRO','DE','MÓRMON'],targets=[11,11,14,7,12,11,11,18,19,11,17,16,16,16,14,9,15,10],all=[];
+ let letterIndex=0;
  lines.forEach((line,lineIndex)=>{
-  const chars=[...line],cell=6.2,gap=0,advance=40,rowStep=7.2;
-  const totalWidth=chars.length*advance-8,start=(360-totalWidth)/2;
+  const chars=[...line],advance=40,rowStep=7.2,totalWidth=chars.length*advance-8,startX=(360-totalWidth)/2;
   chars.forEach((raw,ci)=>{
    if(raw===' ')return;
    const ch=raw.normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-   const glyph=GLYPHS[ch]||GLYPHS.O;
-   glyph.forEach((row,ri)=>[...row].forEach((bit,xi)=>{if(bit==='1')all.push({x:start+ci*advance+xi*7.2,y:4+lineIndex*49+ri*rowStep,w:7.2,h:7.2,region:'phrase-'+lineIndex})}));
-   if(raw==='Á'||raw==='Ó')all.push({x:start+ci*advance+2*7.2,y:4+lineIndex*49-7.2,w:7.2,h:7.2,region:'phrase-'+lineIndex});
+   const glyph=GLYPHS[ch]||GLYPHS.O,points=[];
+   glyph.forEach((row,ri)=>[...row].forEach((bit,xi)=>{if(bit==='1')points.push({x:startX+ci*advance+xi*7.2,y:4+lineIndex*49+ri*rowStep,w:7.2,h:7.2,region:'phrase-'+lineIndex})}));
+   if(raw==='Á')points.push({x:startX+ci*advance+2*7.2,y:4+lineIndex*49-7.2,w:7.2,h:7.2,region:'phrase-'+lineIndex});
+   const target=targets[letterIndex++];
+   const chosen=points.length<=target?points:Array.from({length:target},(_,i)=>points[Math.floor(i*points.length/target)]);
+   all.push(...chosen);
+   if(raw==='Ó')all.push({x:startX+ci*advance+2*7.2,y:4+lineIndex*49-7.2,w:7.2,h:7.2,region:'phrase-'+lineIndex});
   });
  });
- if(all.length<=TOTAL)return all;
- return Array.from({length:TOTAL},(_,i)=>({...all[Math.floor(i*all.length/TOTAL)]}));
+ if(all.length!==TOTAL)throw new Error('A frase precisa conter exatamente 239 células; foram geradas '+all.length);
+ return all;
 }
 const PHRASE_CELLS=phraseCells();
 const PHRASE_REGIONS=[0,1,2,3].map(i=>({id:'phrase-'+i,name:['JÁ LI O','LIVRO','DE','MÓRMON'][i],chapters:PHRASE_CELLS.flatMap((cell,index)=>cell.region==='phrase-'+i?[CHAPTERS[index]]:[])}));
