@@ -29,41 +29,42 @@ const GLYPHS={
  N:['10001','11001','10101','10011','10001','10001','10001']
 };
 function phraseCells(){
- const lines=['JÁ LI O','LIVRO DE','MÓRMON'],all=[];
+ const lines=['JÁ LI O','LIVRO','DE','MÓRMON'],all=[];
  lines.forEach((line,lineIndex)=>{
-  const chars=[...line],advance=38,cell=5.5,gap=1.1,totalWidth=chars.length*advance-advance*.18,start=(360-totalWidth)/2;
+  const chars=[...line],cell=6.2,gap=0,advance=40,rowStep=7.2;
+  const totalWidth=chars.length*advance-8,start=(360-totalWidth)/2;
   chars.forEach((raw,ci)=>{
+   if(raw===' ')return;
    const ch=raw.normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-   if(ch===' ')return;
    const glyph=GLYPHS[ch]||GLYPHS.O;
-   glyph.forEach((row,ri)=>[...row].forEach((bit,xi)=>{if(bit==='1')all.push({x:start+ci*advance+xi*(cell+gap),y:12+lineIndex*69+ri*(cell+gap),w:cell,h:cell,region:'phrase-'+lineIndex})}));
-   if(raw==='Á'||raw==='Ó')all.push({x:start+ci*advance+2*(cell+gap),y:12+lineIndex*69-7,w:cell,h:cell,region:'phrase-'+lineIndex});
+   glyph.forEach((row,ri)=>[...row].forEach((bit,xi)=>{if(bit==='1')all.push({x:start+ci*advance+xi*7.2,y:4+lineIndex*49+ri*rowStep,w:7.2,h:7.2,region:'phrase-'+lineIndex})}));
+   if(raw==='Á'||raw==='Ó')all.push({x:start+ci*advance+2*7.2,y:4+lineIndex*49-7.2,w:7.2,h:7.2,region:'phrase-'+lineIndex});
   });
  });
  if(all.length<=TOTAL)return all;
- return Array.from({length:TOTAL},(_,i)=>all[Math.floor(i*all.length/TOTAL)]);
+ return Array.from({length:TOTAL},(_,i)=>({...all[Math.floor(i*all.length/TOTAL)]}));
 }
 const PHRASE_CELLS=phraseCells();
-const PHRASE_REGIONS=[0,1,2].map(i=>({id:'phrase-'+i,name:['JÁ LI O','LIVRO DE','MÓRMON'][i],chapters:PHRASE_CELLS.flatMap((cell,index)=>cell.region==='phrase-'+i?[CHAPTERS[index]]:[])}));
+const PHRASE_REGIONS=[0,1,2,3].map(i=>({id:'phrase-'+i,name:['JÁ LI O','LIVRO','DE','MÓRMON'][i],chapters:PHRASE_CELLS.flatMap((cell,index)=>cell.region==='phrase-'+i?[CHAPTERS[index]]:[])}));
 const TEMPLE_ZONES=[
- {id:'A',name:'Pináculo',count:9,cells:makeCells(174,18,1,9,12,10,'A')},
- {id:'B',name:'Torre',count:18,cells:makeCells(162,112,2,9,18,20,'B')},
- {id:'C',name:'Friso',count:16,cells:makeCells(144,248,4,4,18,20,'C')},
- {id:'D',name:'Corpo central',count:72,cells:makeCells(108,260,8,9,18,20,'D')},
- {id:'E1',name:'Ala esquerda',count:36,cells:makeCells(0,280,6,6,18,20,'E1')},
- {id:'E2',name:'Ala direita',count:36,cells:makeCells(252,280,6,6,18,20,'E2')},
- {id:'F',name:'Pórtico',count:24,cells:makeCells(126,440,6,4,18,20,'F')},
- {id:'G',name:'Base e degraus',count:28,cells:makeCells(54,520,14,2,18,20,'G')}
+ {id:'A',name:'Pináculo',count:6,cells:[{x:176,y:14,w:8,h:11},{x:174,y:25,w:12,h:11},{x:172,y:36,w:16,h:11},{x:170,y:47,w:20,h:11},{x:168,y:58,w:24,h:11},{x:166,y:69,w:28,h:11}].map(v=>({...v,region:'A'}))},
+ {id:'B',name:'Torre superior',count:8,cells:makeCells(162,80,2,4,18,16,'B')},
+ {id:'C',name:'Torre inferior',count:16,cells:makeCells(144,144,4,4,18,16,'C')},
+ {id:'D',name:'Corpo central',count:120,cells:makeCells(110,210,10,12,14,14,'D')},
+ {id:'E',name:'Ala esquerda',count:25,cells:makeCells(40,245,5,5,14,14,'E')},
+ {id:'F',name:'Ala direita',count:25,cells:makeCells(250,245,5,5,14,14,'F')},
+ {id:'G',name:'Pórtico',count:15,cells:makeCells(145,378,5,3,14,14,'G')},
+ {id:'H',name:'Escadaria',count:24,cells:makeCells(72,420,12,2,18,12,'H')}
 ];
 let cursor=0;
 TEMPLE_ZONES.forEach(z=>{z.chapters=CHAPTERS.slice(cursor,cursor+z.count);cursor+=z.count;});
 const CHAPEL_ZONES=[
- {id:'T',name:'Torre e pináculo',count:28,cells:makeCells(164,20,4,7,9,8,'T')},
- {id:'R',name:'Telhado e frontão',count:21,cells:makeCells(127,80,7,3,15,9,'R')},
- {id:'B',name:'Corpo da capela',count:144,cells:makeCells(18,112,18,8,18,9,'B')},
- {id:'L',name:'Ala esquerda',count:20,cells:makeCells(18,76,5,4,16,8,'L')},
- {id:'D',name:'Ala direita',count:20,cells:makeCells(262,76,5,4,16,8,'D')},
- {id:'S',name:'Base',count:6,cells:makeCells(126,187,6,1,18,8,'S')}
+ {id:'T',name:'Torre e pináculo',count:28,cells:makeCells(132,40,4,7,11,10,'T')},
+ {id:'R',name:'Telhado e frontão',count:21,cells:makeCells(124,105,7,3,16,10,'R')},
+ {id:'B',name:'Corpo da capela',count:144,cells:makeCells(0,122,18,8,20,8,'B')},
+ {id:'L',name:'Ala esquerda',count:20,cells:makeCells(0,142,5,4,16,8,'L')},
+ {id:'D',name:'Ala direita',count:20,cells:makeCells(280,142,5,4,16,8,'D')},
+ {id:'S',name:'Base',count:6,cells:makeCells(132,178,6,1,16,5,'S')}
 ];
 cursor=0;
 CHAPEL_ZONES.forEach(z=>{z.chapters=CHAPTERS.slice(cursor,cursor+z.count);cursor+=z.count;});
@@ -179,19 +180,19 @@ export default function ReadingPage({supabase,session,profile,onMessage=()=>{}})
  };
  const openRegion=(id,name,chapters)=>setActiveRegion({id,name,chapters});
  const renderPhrase=()=>{
-  const lines=['JÁ LI O','LIVRO DE','MÓRMON'];
+  const lines=['JÁ LI O','LIVRO','DE','MÓRMON'];
   return <svg className="reading-art phrase-art" viewBox="0 0 360 210" role="img" aria-label="Frase Já li o Livro de Mórmon formada por 239 capítulos">
-   {lines.map((line,i)=><text key={line} x="180" y={59+i*69} textAnchor="middle" className="phrase-label">{line}</text>)}
+   {lines.map((line,i)=>)}
    {PHRASE_CELLS.map((cell,i)=>{const chapter=CHAPTERS[i],read=progressMap.has(chapter.book_key+':'+chapter.chapter),region=PHRASE_REGIONS.find(r=>r.id===cell.region);return <rect key={i} x={cell.x} y={cell.y} width={cell.w} height={cell.h} rx="1" fill={read?settings.active_color:'#fff'} stroke={read?settings.active_color:'#9baca1'} strokeWidth=".8" onClick={()=>openRegion(region.id,region.name,region.chapters)} className="reading-cell" aria-label={chapter.book_name+' capítulo '+chapter.chapter}/>})}
   </svg>
  };
- const renderTemple=()=> <svg className="reading-art temple-art" viewBox="0 0 360 560" role="img" aria-label="Templo de Teresina dividido em 239 capítulos">
-  <g className="temple-outline" fill="none" stroke="#6e8b7b" strokeWidth="2"><path d="M176 8h8v104h-8z M162 112h36v136h-36z M72 248h216v12H72z M108 260h144v180H108z M0 280h108v120H0z M252 280h108v120H252z M126 440h108v80H126z M54 520h252v40H54z"/><path d="M180 8l-8 10h16z M72 248l36-22h144l36 22"/></g>
+ const renderTemple=()=> <svg className="reading-art temple-art" viewBox="0 0 360 500" role="img" aria-label="Templo de Teresina dividido em 239 capítulos">
+  <g className="temple-outline" fill="none" stroke="#6e8b7b" strokeWidth="2" pointerEvents="none"><path d="M180 8L174 18H186Z M176 18H184V80H176Z M162 80H198V144H162Z M144 144H216V200H144Z M110 210H250V378H110Z M40 245H110V315H40Z M250 245H320V315H250Z M145 378H215V420H145Z M72 420H288V444H72Z"/><path d="M122 210V378 M150 210V378 M180 210V378 M210 210V378 M238 210V378 M132 230V285A12 12 0 0 1 156 285V230 M204 230V285A12 12 0 0 1 228 285V230 M164 378V396A16 16 0 0 1 196 396V378 M72 420H288 M84 432H276" /><path d="M180 8L180 1" stroke="#C9A227" strokeWidth="3"/></g>
   {TEMPLE_CELLS.map((cell,i)=>{const chapter=cell.chapter,read=progressMap.has(chapter.book_key+':'+chapter.chapter),zone=TEMPLE_ZONES.find(z=>z.id===cell.region);return <rect key={i} x={cell.x} y={cell.y} width={cell.w} height={cell.h} rx="1" fill={read?settings.active_color:'#fff'} stroke={read?settings.active_color:'#9baca1'} strokeWidth=".8" className="reading-cell" onClick={()=>openRegion(cell.region,zone.name,zone.chapters)}/>})}
  </svg>;
  const renderChapel=()=> <svg className="reading-art chapel-art" viewBox="0 0 360 230" role="img" aria-label="Logo oficial da Estaca Horto dividida em 239 capítulos">
-  <image href="/logo-estaca.svg" x="0" y="0" width="360" height="230" opacity=".62"/>
-  {CHAPEL_CELLS.map((cell,i)=>{const chapter=cell.chapter,read=progressMap.has(chapter.book_key+':'+chapter.chapter),zone=CHAPEL_ZONES.find(z=>z.id===cell.region);return <rect key={i} x={cell.x} y={cell.y} width={cell.w} height={cell.h} rx="1" fill={read?settings.active_color:'#ffffff'} fillOpacity={read ? 0.9 : 0.48} stroke={read?settings.active_color:'#82988c'} strokeWidth=".6" className="reading-cell" onClick={()=>openRegion(cell.region,zone.name,zone.chapters)}/>})}
+  <defs><clipPath id="chapel-tower"><polygon points="128,35 180,35 180,112 128,112"/></clipPath><clipPath id="chapel-roof"><polygon points="90,122 180,82 270,122 270,140 90,140"/></clipPath><clipPath id="chapel-body"><polygon points="0,122 360,122 360,180 0,180"/></clipPath><clipPath id="chapel-left"><polygon points="0,140 100,140 100,180 0,180"/></clipPath><clipPath id="chapel-right"><polygon points="280,140 360,140 360,180 280,180"/></clipPath><clipPath id="chapel-base"><polygon points="0,178 360,178 360,184 0,184"/></clipPath></defs><image href="/logo-estaca.svg" x="0" y="0" width="360" height="230" opacity=".62" pointerEvents="none"/>
+  {CHAPEL_ZONES.map(zone=><g key={zone.id} clipPath={`url(#chapel-${({T:'tower',R:'roof',B:'body',L:'left',D:'right',S:'base'})[zone.id]})`}>{zone.cells.map((cell,i)=>{const chapter=CHAPTERS[CHAPEL_ZONES.slice(0,CHAPEL_ZONES.indexOf(zone)).reduce((n,z)=>n+z.count,0)+i],read=progressMap.has(chapter.book_key+':'+chapter.chapter);return <rect key={i} x={cell.x} y={cell.y} width={cell.w} height={cell.h} fill={read?settings.active_color:'#ffffff'} fillOpacity={read ? 0.9 : 0.48} stroke={read?settings.active_color:'#82988c'} strokeWidth=".6" className="reading-cell" onClick={()=>openRegion(zone.id,zone.name,zone.chapters)}/>})}</g>)}
  </svg>;
  const currentLayout=settings.layout||'frase';
  const regions=currentLayout==='templo'?TEMPLE_ZONES:currentLayout==='capela'?CHAPEL_ZONES:null;
