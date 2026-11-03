@@ -130,3 +130,39 @@
 .report-goal-values strong{font:800 27px Manrope;color:#21483e}
 .report-goal-values span{font-size:12px;color:#62756a}
 .report-goal-card>p{font-size:10px;color:#718278;margin:7px 0 0}
+
+
+/* Acompanhamento oficial: mobile-first, sem rolagem horizontal */
+.acomp-head{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap;margin:8px 0 18px}
+.acomp-head h3{margin:5px 0;font:800 21px Manrope;color:#244d3d}
+.acomp-head p{margin:0;color:#718078;font-size:12px;line-height:1.5}
+.acomp-head>label,.acomp-chart-card>label{display:grid;gap:5px;font-size:11px;color:#65766c;min-width:150px}
+.acomp-head select,.acomp-chart-card select{width:100%;max-width:100%}
+.acomp-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;margin-bottom:16px}
+.acomp-pillar,.acomp-chart-card{min-width:0;background:#fff;border:1px solid #e0e9e2;border-radius:12px;padding:14px;box-shadow:0 2px 10px rgba(35,70,51,.035)}
+.acomp-pillar h3{font:800 13px Manrope;letter-spacing:.06em;margin:0 0 10px}
+.acomp-metric{padding:11px 0;border-top:1px solid #edf1ed;min-width:0}
+.acomp-metric>div:first-child{display:flex;justify-content:space-between;align-items:flex-start;gap:6px}
+.acomp-metric b{font-size:12px;line-height:1.35;color:#344b3d}
+.acomp-metric>strong{display:block;font:800 23px Manrope;color:#21483e;margin-top:7px}
+.acomp-metric p{font-size:11px;color:#6c7b72;margin:2px 0 8px}
+.acomp-achieved{font-size:9px;font-weight:800;color:#26734d;white-space:nowrap}
+.acomp-metric .hint{display:block;margin-top:7px}
+.acomp-chart-card{margin:13px 0}
+.acomp-chart-card h3{font:800 14px Manrope;color:#294d3d;margin:0 0 14px;line-height:1.4}
+.acomp-chart-card>small,.acomp-compare>small{font-size:10px;color:#7a887f}
+.acomp-bars{display:grid;gap:12px;margin:8px 0 13px}
+.acomp-bar-row{min-width:0}
+.acomp-bar-label{display:flex;justify-content:space-between;gap:8px;font-size:11px;margin-bottom:5px;color:#485b4f}
+.acomp-bar-label span{min-width:0;overflow-wrap:anywhere}
+.acomp-bar-track{height:11px;background:#edf2ee;border-radius:20px;position:relative;overflow:visible}
+.acomp-bar-track i{display:block;height:100%;border-radius:20px;min-width:0}
+.acomp-bar-track em{position:absolute;top:-3px;height:17px;border-left:2px dashed #263e31;opacity:.65}
+.acomp-compare{display:grid;gap:12px;min-width:0}
+.acomp-compare-row{display:grid;gap:5px;min-width:0}
+.acomp-compare-row>b{font-size:11px;color:#43574a}
+.acomp-compare-row>div{display:flex;align-items:center;gap:7px;min-width:0}
+.acomp-compare-row>div i{height:10px;min-width:2px;max-width:calc(100% - 48px);border-radius:12px;background:#477b61;display:block}
+.acomp-compare-row>div span{font-size:10px;color:#53665a;white-space:nowrap}
+.acomp-compare>small{margin-top:2px}
+@media(max-width:650px){.acomp-cards{grid-template-columns:1fr}.acomp-head{align-items:stretch}.acomp-head>label{width:100%}.acomp-pillar{padding:13px}.acomp-chart-card{padding:12px}.acomp-chart-card h3{font-size:13px}}
