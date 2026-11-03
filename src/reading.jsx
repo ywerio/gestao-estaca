@@ -154,7 +154,7 @@ export default function ReadingPage({supabase,session,profile,onMessage=()=>{}})
   const key=chapter.book_key+':'+chapter.chapter,wasRead=progressMap.has(key),nextRead=!wasRead;
   const now=TODAY(),nextRows=nextRead?[...progress.filter(p=>p.book_key!==chapter.book_key||p.chapter!==chapter.chapter),{user_id:userId,book_key:chapter.book_key,chapter:chapter.chapter,color:settings.active_color,read_on:now}]:progress.filter(p=>p.book_key!==chapter.book_key||p.chapter!==chapter.chapter);
   setProgress(nextRows);
-  const nextSettings={...settings,started_on:settings.started_on||now,finished_on:nextRead&&nextRows.length===TOTAL?now:nextRows.length<TOTAL?null:settings.finished_on};
+  const nextSettings={...settings,started_on:settings.started_on||now,finished_on:settings.finished_on};
   if(nextRows.length===TOTAL&&!settings.finished_on)nextSettings.finished_on=now;
   setSettings(nextSettings);
   const row={user_id:userId,book_key:chapter.book_key,chapter:chapter.chapter,color:settings.active_color,read_on:now};
@@ -166,6 +166,7 @@ export default function ReadingPage({supabase,session,profile,onMessage=()=>{}})
    if(!result.error){setQueue(pendingRef.current.filter(x=>x.id!==item.id));await reconcileDates(nextSettings);}
    else setError('Marcação pendente de sincronização: '+result.error.message);
   }else setError('Sem conexão: marcação pendente no aparelho, ainda não confirmada pelo Supabase.');
+  if(!pendingRef.current.length&&navigator.onLine)await reconcileDates(nextSettings);
   const {error:settingsError}=await supabase.from('reading_settings').upsert({user_id:userId,...nextSettings,updated_at:new Date().toISOString()},{onConflict:'user_id'});
   if(settingsError){const item={id:Date.now()+Math.random(),type:'settings',settings:nextSettings};setQueue([...pendingRef.current.filter(x=>x.type!=='settings'),item]);setError('Progresso marcado, mas as datas/configurações aguardam sincronização: '+settingsError.message);}
  };
@@ -207,7 +208,7 @@ export default function ReadingPage({supabase,session,profile,onMessage=()=>{}})
   });
   if(!ops.length)return;
   setProgress(nextRows);
-  const nextSettings={...settings,started_on:settings.started_on||(read?now:null),finished_on:read&&nextRows.length===TOTAL?now:nextRows.length<TOTAL?null:settings.finished_on};
+  const nextSettings={...settings,started_on:settings.started_on||(read?now:null),finished_on:settings.finished_on};
   setSettings(nextSettings);
   let queue=[...pendingRef.current];
   for(const op of ops){const key=op.type==='upsert'?op.row.book_key+':'+op.row.chapter:op.book_key+':'+op.chapter;queue=queue.filter(x=>(x.type==='upsert'?x.row.book_key+':'+x.row.chapter:x.book_key+':'+x.chapter)!==key);queue.push({id:Date.now()+Math.random(),...op});}
@@ -215,7 +216,7 @@ export default function ReadingPage({supabase,session,profile,onMessage=()=>{}})
   if(navigator.onLine){
    let remaining=[...queue];
    for(const item of queue){
-    const result=item.type==='upsert'?await supabase.from('reading_progress').upsert(item.row,{onConflict:'user_id,book_key,chapter'}):await supabase.from('reading_progress').delete().eq('user_id',userId).eq('book_key',item.book_key).eq('chapter',item.chapter);
+    const result=item.type==='settings'?await supabase.from('reading_settings').upsert({user_id:userId,...item.settings,updated_at:new Date().toISOString()},{onConflict:'user_id'}):item.type==='upsert'?await supabase.from('reading_progress').upsert(item.row,{onConflict:'user_id,book_key,chapter'}):await supabase.from('reading_progress').delete().eq('user_id',userId).eq('book_key',item.book_key).eq('chapter',item.chapter);
     if(result.error){setError('Algumas marcações da região aguardam sincronização: '+result.error.message);break;}
     remaining=remaining.filter(x=>x.id!==item.id);setQueue(remaining);
    }
