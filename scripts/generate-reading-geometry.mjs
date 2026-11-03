@@ -112,7 +112,7 @@ for (const [lineIndex,line] of lines.entries()) {
   const chars=[...line], advance=40, startX=(360-(chars.length*advance-8))/2;
   for (const [ci,raw] of chars.entries()) {
     if (raw===' ') continue;
-    const ch=raw.normalize('NFD').replace(/[\\u0300-\\u036f]/g,'');
+    const ch=raw.normalize('NFD').replace(/\p{M}/gu,'');
     const points=[];
     glyphs[ch].forEach((row,ri)=>[...row].forEach((bit,xi)=>{
       if(bit==='1')points.push({x:startX+ci*advance+xi*7.2,y:4+lineIndex*49+ri*7.2,w:7.2,h:7.2,region:'phrase-'+lineIndex});
@@ -149,5 +149,5 @@ const geometry={phrase,temple,chapel};
 const counts=[phrase.length,...temple.map(z=>z.cells.length),...chapel.map(z=>z.cells.length)];
 if(phrase.length!==239 || temple.reduce((n,z)=>n+z.cells.length,0)!==239 || chapel.reduce((n,z)=>n+z.cells.length,0)!==239) throw new Error('Cada desenho deve ter 239 células: '+counts.join(','));
 for(const z of [...temple,...chapel]) if(z.cells.length!==z.count) throw new Error('Contagem incorreta na região '+z.id);
-await writeFile(new URL('../src/reading-geometry.json',import.meta.url),JSON.stringify(geometry,null,2)+'\\n');
+await writeFile(new URL('../src/reading-geometry.json',import.meta.url),JSON.stringify(geometry,null,2)+'\n');
 console.log('Geometria gerada: frase, templo e capela com 239 células cada.');
