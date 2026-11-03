@@ -280,7 +280,8 @@ create policy "audit_logs_read_presidency" on public.audit_logs
 for select to authenticated using(public.is_presidency());
 revoke all on public.audit_logs from anon, authenticated;
 grant select on public.audit_logs to authenticated;
-grant usage, select on sequence public.audit_logs_id_seq to authenticated;
+create index if not exists idx_audit_logs_changed_at on public.audit_logs(changed_at desc);
+create index if not exists idx_audit_logs_table_record on public.audit_logs(table_name,record_id,changed_at desc);
 
 create or replace function public.write_audit_log()
 returns trigger language plpgsql security definer set search_path=public,auth as $$
