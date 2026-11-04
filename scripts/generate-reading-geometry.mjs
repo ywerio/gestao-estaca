@@ -57,7 +57,7 @@ for(const [lineIndex,line] of lines.entries()){
 }
 const grid=(x,y,cols,rows,size,region)=>Array.from({length:cols*rows},(_,i)=>({x:x+(i%cols)*size,y:y+Math.floor(i/cols)*size,w:size,h:size,region}));
 const temple=[
- {id:"A",name:"Pináculo",count:6,cells:grid(174,8,2,3,6,"A")},
+ {id:"A",name:"Pináculo",count:6,cells:grid(176,8,2,3,4,"A")},
  {id:"B",name:"Torre superior",count:8,cells:grid(164,80,2,4,16,"B")},
  {id:"C",name:"Torre inferior",count:16,cells:grid(152,144,4,4,14,"C")},
  {id:"D",name:"Corpo central",count:120,cells:grid(110,210,10,12,14,"D")},
