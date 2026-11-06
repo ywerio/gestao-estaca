@@ -27,8 +27,13 @@ function buildTempleCells(){let i=0;return TEMPLE_ZONES.flatMap(z=>z.cells.map(c
 function buildChapelCells(){let i=0;return CHAPEL_ZONES.flatMap(z=>z.cells.map(cell=>({...cell,chapter:CHAPTERS[i++],region:z.id})))}
 const TEMPLE_CELLS=buildTempleCells(),CHAPEL_CELLS=buildChapelCells();
 const fmtDate=s=>s?new Date(s+'T12:00:00').toLocaleDateString('pt-BR'):'—';
-const SCRIPTURE_SLUGS={'1ne':'1-ne','2ne':'2-ne',jac:'jacob',eno:'enos',jar:'jarom',omn:'omni',pdm:'w-of-m',mos:'mosiah',alm:'alma',hel:'helaman','3ne':'3-ne','4ne':'4-ne',mrm:'morm',eth:'ether',mor:'moro'};
-const scriptureUrl=ch=>'https://www.churchofjesuschrist.org/study/scriptures/bofm/'+SCRIPTURE_SLUGS[ch.book_key]+'/'+ch.chapter+'?lang=por';
+const SCRIPTURE_SLUGS={'1ne':'1-ne','2ne':'2-ne',jac:'jacob',eno:'enos',jar:'jarom',omn:'omni',pdm:'w-of-m',mos:'mosiah',alm:'alma',hel:'hel','3ne':'3-ne','4ne':'4-ne',mrm:'morm',eth:'ether',mor:'moro'};
+// Alma: use the official Gospel Library URI scheme because the Android app was
+// opening the app shell instead of resolving the chapter from its universal link.
+// Other books keep the official HTTPS App Link. Helamã uses the canonical slug "hel".
+const scriptureUrl=ch=>ch.book_key==='alm'
+ ? 'gospellibrary://content/scriptures/bofm/alma/'+ch.chapter+'?lang=por'
+ : 'https://www.churchofjesuschrist.org/study/scriptures/bofm/'+SCRIPTURE_SLUGS[ch.book_key]+'/'+ch.chapter+'?lang=por';
 const chapterLabel=ch=>ch.book_name+' '+ch.chapter;
 
 export default function ReadingPage({supabase,session,profile,onMessage=()=>{}}){
