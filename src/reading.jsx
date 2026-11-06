@@ -27,6 +27,9 @@ function buildTempleCells(){let i=0;return TEMPLE_ZONES.flatMap(z=>z.cells.map(c
 function buildChapelCells(){let i=0;return CHAPEL_ZONES.flatMap(z=>z.cells.map(cell=>({...cell,chapter:CHAPTERS[i++],region:z.id})))}
 const TEMPLE_CELLS=buildTempleCells(),CHAPEL_CELLS=buildChapelCells();
 const fmtDate=s=>s?new Date(s+'T12:00:00').toLocaleDateString('pt-BR'):'—';
+const SCRIPTURE_SLUGS={'1ne':'1-ne','2ne':'2-ne',jac:'jacob',eno:'enos',jar:'jarom',omn:'omni',pdm:'w-of-m',mos:'mosiah',alm:'alma',hel:'helaman','3ne':'3-ne','4ne':'4-ne',mrm:'morm',eth:'ether',mor:'moro'};
+const scriptureUrl=ch=>'https://www.churchofjesuschrist.org/study/scriptures/bofm/'+SCRIPTURE_SLUGS[ch.book_key]+'/'+ch.chapter+'?lang=por';
+const chapterLabel=ch=>ch.book_name+' '+ch.chapter;
 
 export default function ReadingPage({supabase,session,profile,onMessage=()=>{}}){
  const userId=session?.user?.id;
@@ -38,32 +41,38 @@ export default function ReadingPage({supabase,session,profile,onMessage=()=>{}})
  const [syncing,setSyncing]=useState(false);
  const [error,setError]=useState('');
  const [view,setView]=useState('desenho');
+ const [activity,setActivity]=useState([]);
  const [activeRegion,setActiveRegion]=useState(null);
  const [showSettings,setShowSettings]=useState(false);
  const syncLock=useRef(false);
  const pendingRef=useRef([]);
  const done=progress.length;
+ const readDays=useMemo(()=>new Set(activity.filter(a=>a.action==='read').map(a=>new Date(a.occurred_at).toLocaleDateString('en-CA'))),[activity]);
+ const streak=useMemo(()=>{let n=0,d=new Date(TODAY()+'T12:00:00');while(readDays.has([d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-'))){n++;d.setDate(d.getDate()-1)}return n},[readDays]);
  const progressMap=useMemo(()=>new Set(progress.map(p=>p.book_key+':'+p.chapter)),[progress]);
  const percent=Math.round(done/TOTAL*100);
  const groupedBooks=useMemo(()=>BOOKS.map(b=>({...b,chapters:CHAPTERS.filter(c=>c.book_key===b.key),read:progress.filter(p=>p.book_key===b.key).length})),[progress]);
- const applyQueue=(base,items)=>{let next=[...base];items.forEach(item=>{if(item.type==='settings')return;if(item.type==='delete')next=next.filter(p=>!(p.book_key===item.book_key&&p.chapter===item.chapter));else{next=next.filter(p=>!(p.book_key===item.row.book_key&&p.chapter===item.row.chapter));next.push(item.row)}});return next};
+ const applyQueue=(base,items)=>{let next=[...base];items.forEach(item=>{if(item.type==='settings'||item.type==='activity')return;if(item.type==='delete')next=next.filter(p=>!(p.book_key===item.book_key&&p.chapter===item.chapter));else{next=next.filter(p=>!(p.book_key===item.row.book_key&&p.chapter===item.row.chapter));next.push(item.row)}});return next};
  const setQueue=items=>{pendingRef.current=items;setPending(items);if(userId)writeQueue(userId,items)};
  const load=useCallback(async()=>{
   if(!userId||!supabase)return;
   setLoading(true);setError('');
   const localQueue=parseQueue(userId);setQueue(localQueue);
   try{
-   const [p,s]=await Promise.all([
+   const [p,s,h]=await Promise.all([
     supabase.from('reading_progress').select('book_key,chapter,color,read_on').eq('user_id',userId),
-    supabase.from('reading_settings').select('active_color,layout,started_on,goal_on,finished_on').eq('user_id',userId).maybeSingle()
+    supabase.from('reading_settings').select('active_color,layout,started_on,goal_on,finished_on').eq('user_id',userId).maybeSingle(),
+    supabase.from('reading_activity').select('id,book_key,chapter,action,occurred_at').eq('user_id',userId).order('occurred_at',{ascending:false}).limit(300)
    ]);
-   if(p.error)throw p.error;if(s.error)throw s.error;
+   if(p.error)throw p.error;if(s.error)throw s.error;if(h.error)throw h.error;
+   setActivity(h.data||[]);
    const serverRows=p.data||[];
    const serverMap=new Map(serverRows.map(row=>[row.book_key+':'+row.chapter,row]));
    const defaults={active_color:COLORS[0],layout:'frase',started_on:null,goal_on:null,finished_on:null};
    const serverSettings={...defaults,...(s.data||{})};
    const effectiveQueue=localQueue.filter(item=>{
     if(item.type==='settings')return Object.keys(item.settings||{}).some(key=>(item.settings||{})[key]!==serverSettings[key]);
+    if(item.type==='activity')return true;
     const key=item.type==='delete'?item.book_key+':'+item.chapter:item.row.book_key+':'+item.row.chapter;
     const saved=serverMap.get(key);
     if(item.type==='delete')return !!saved;
@@ -103,6 +112,7 @@ export default function ReadingPage({supabase,session,profile,onMessage=()=>{}})
     const item=pendingRef.current[0];
     let result;
     if(item.type==='settings')result=await supabase.from('reading_settings').upsert({user_id:userId,...item.settings,updated_at:new Date().toISOString()},{onConflict:'user_id'});
+    else if(item.type==='activity')result=await supabase.from('reading_activity').upsert(item.row,{onConflict:'id'});
     else if(item.type==='delete')result=await supabase.from('reading_progress').delete().eq('user_id',userId).eq('book_key',item.book_key).eq('chapter',item.chapter);
     else result=await supabase.from('reading_progress').upsert(item.row,{onConflict:'user_id,book_key,chapter'});
     if(result.error){failed=true;setError('Não foi possível confirmar a sincronização. As alterações continuam salvas na fila deste aparelho: '+result.error.message);break;}
