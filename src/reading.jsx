@@ -154,7 +154,7 @@ export default function ReadingPage({supabase,session,profile,onMessage=()=>{}})
   <image href="/logo-estaca.svg" x="0" y="0" width="360" height="230" opacity=".48" pointerEvents="none"/>
   {CHAPEL_ZONES.map(zone=><g key={zone.id}>{zone.cells.map((cell,i)=>{const chapter=CHAPTERS[CHAPEL_ZONES.slice(0,CHAPEL_ZONES.indexOf(zone)).reduce((n,z)=>n+z.count,0)+i],read=progressMap.has(chapter.book_key+':'+chapter.chapter);return <rect key={i} x={cell.x} y={cell.y} width={cell.w} height={cell.h} rx=".25" fill={read?settings.active_color:'#ffffff'} fillOpacity={read ? 0.92 : 0.68} stroke={read?settings.active_color:'#82988c'} strokeWidth=".55" className="reading-cell" onClick={()=>openRegion(zone.id,zone.name,zone.chapters)}/>})}</g>)}
  </svg>;
- const currentLayout=settings.layout||'frase';
+ const currentLayout=settings.layout||'templo';
  const regions=currentLayout==='templo'?TEMPLE_ZONES:currentLayout==='capela'?CHAPEL_ZONES:null;
  const activeRegionData=activeRegion;
  const regionDone=activeRegionData?.chapters.filter(c=>progressMap.has(c.book_key+':'+c.chapter)).length||0;
