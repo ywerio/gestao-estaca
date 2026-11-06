@@ -26,6 +26,13 @@ async function fetchAllRows(makeQuery,maxRows=5000){
  }
  throw new Error('O histórico ultrapassou o limite de segurança de '+maxRows+' registros por tabela. Aplique filtros ou exporte o histórico.');
 }
+async function runInBatches(tasks,batchSize=3){
+ const results=[];
+ for(let i=0;i<tasks.length;i+=batchSize){
+  results.push(...await Promise.all(tasks.slice(i,i+batchSize).map(task=>task())));
+ }
+ return results;
+}
 function dateISO(d){return d.toISOString().slice(0,10)}
 function latestSunday(){const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()-d.getDay());return dateISO(d)}
 function monthLabel(s){return new Date(s+'T12:00:00').toLocaleDateString('pt-BR',{month:'short',year:'2-digit'})}
@@ -76,15 +83,15 @@ async function load(){
    const{data:preferences,error:preferencesError}=await supabase.from('notification_preferences').select('*').eq('user_id',session.user.id).maybeSingle();
    if(preferencesError)throw preferencesError;
    NP({ward_posts:true,stake_posts:true,ward_events:true,stake_events:true,...preferences});
-   const[a,b,c,d,e,g,h]=await Promise.all([
-    fetchAllRows(()=>supabase.from('posts').select('*,profiles(full_name,ward_name)').order('created_at',{ascending:false}),2000),
-    fetchAllRows(()=>supabase.from('indicator_entries').select('*').order('month'),5000),
-    fetchAllRows(()=>supabase.from('events').select('*').order('event_date'),5000),
-    fetchAllRows(()=>supabase.from('weekly_indicator_entries').select('*').order('week_date'),5000),
-    fetchAllRows(()=>supabase.from('personal_events').select('*').order('date'),2000),
-    fetchAllRows(()=>supabase.from('goal_targets').select('*'),2000),
-    fetchAllRows(()=>supabase.from('area_snapshots').select('*').order('ref_month'),5000)
-   ]);
+   const[a,b,c,d,e,g,h]=await runInBatches([
+    ()=>fetchAllRows(()=>supabase.from('posts').select('*,profiles(full_name,ward_name)').order('created_at',{ascending:false}),2000),
+    ()=>fetchAllRows(()=>supabase.from('indicator_entries').select('*').order('month'),5000),
+    ()=>fetchAllRows(()=>supabase.from('events').select('*').order('event_date'),5000),
+    ()=>fetchAllRows(()=>supabase.from('weekly_indicator_entries').select('*').order('week_date'),5000),
+    ()=>fetchAllRows(()=>supabase.from('personal_events').select('*').order('date'),2000),
+    ()=>fetchAllRows(()=>supabase.from('goal_targets').select('*'),2000),
+    ()=>fetchAllRows(()=>supabase.from('area_snapshots').select('*').order('ref_month'),5000)
+   ],3);
    PO(a);ST(b);EV(c);WK(d);PE(e);GT(g);SS(h);
    const summaryRefs=[...h.map(x=>String(x.ref_month).slice(0,7)),...b.map(x=>String(x.month).slice(0,7)),...d.map(x=>String(x.week_date).slice(0,7))].filter(Boolean).sort();
    if(p.unit_type==='ala'&&['bishop','counselor','secretary'].includes(p.role)){
