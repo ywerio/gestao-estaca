@@ -12,6 +12,8 @@ const CHAPTERS=BOOKS.flatMap(book=>Array.from({length:book.count},(_,i)=>({book_
 const TOTAL=CHAPTERS.length;
 const COLORS=['#2E7D32','#1565C0','#6A1B9A','#EF6C00','#00838F','#AD1457'];
 const TODAY=()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')};
+const addMonths=(date,months)=>{const d=new Date(date+'T12:00:00');const day=d.getDate();d.setMonth(d.getMonth()+months);if(d.getDate()<day)d.setDate(0);return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')};
+const dateDays=(from,to)=>Math.round((new Date(to+'T12:00:00')-new Date(from+'T12:00:00'))/86400000);
 const QUEUE_KEY=id=>'reading-pending:'+id;
 const parseQueue=id=>{try{return JSON.parse(localStorage.getItem(QUEUE_KEY(id))||'[]')}catch{return []}};
 const writeQueue=(id,items)=>{try{localStorage.setItem(QUEUE_KEY(id),JSON.stringify(items))}catch{}};
@@ -34,7 +36,7 @@ const chapterLabel=ch=>ch.book_name+' '+ch.chapter;
 export default function ReadingPage({supabase,session,profile,onMessage=()=>{}}){
  const userId=session?.user?.id;
  const [progress,setProgress]=useState([]);
- const [settings,setSettings]=useState({active_color:COLORS[0],layout:'frase',started_on:null,goal_on:null,finished_on:null});
+ const [settings,setSettings]=useState({active_color:COLORS[0],layout:'frase',started_on:null,goal_on:null,goal_type:'custom',finished_on:null});
  const [pending,setPending]=useState([]);
  const [loading,setLoading]=useState(true);
  const [saving,setSaving]=useState(false);
@@ -62,14 +64,14 @@ export default function ReadingPage({supabase,session,profile,onMessage=()=>{}})
   try{
    const [p,s,h]=await Promise.all([
     supabase.from('reading_progress').select('book_key,chapter,color,read_on').eq('user_id',userId),
-    supabase.from('reading_settings').select('active_color,layout,started_on,goal_on,finished_on').eq('user_id',userId).maybeSingle(),
+    supabase.from('reading_settings').select('active_color,layout,started_on,goal_on,goal_type,finished_on').eq('user_id',userId).maybeSingle(),
     supabase.from('reading_activity').select('id,book_key,chapter,action,occurred_at,source').eq('user_id',userId).order('occurred_at',{ascending:false}).limit(300)
    ]);
    if(p.error)throw p.error;if(s.error)throw s.error;if(h.error)throw h.error;
    setActivity(h.data||[]);
    const serverRows=p.data||[];
    const serverMap=new Map(serverRows.map(row=>[row.book_key+':'+row.chapter,row]));
-   const defaults={active_color:COLORS[0],layout:'frase',started_on:null,goal_on:null,finished_on:null};
+   const defaults={active_color:COLORS[0],layout:'frase',started_on:null,goal_on:null,goal_type:'custom',finished_on:null};
    const serverSettings={...defaults,...(s.data||{})};
    const effectiveQueue=localQueue.filter(item=>{
     if(item.type==='settings')return Object.keys(item.settings||{}).some(key=>(item.settings||{})[key]!==serverSettings[key]);
@@ -198,13 +200,27 @@ export default function ReadingPage({supabase,session,profile,onMessage=()=>{}})
   if(navigator.onLine)await flushPending();
   else setError('Sem conexão: alterações da região aguardam confirmação do Supabase.');
  };
+ const goalMetrics=()=>{
+  const remain=TOTAL-done;
+  if(!settings.goal_on||remain===0)return {remain,days:null,daily:0,weekly:0};
+  const days=dateDays(TODAY(),settings.goal_on)+1;
+  if(days<=0)return {remain,days,daily:0,weekly:0};
+  return {remain,days,daily:remain/days,weekly:remain/days*7};
+ };
  const goalText=()=>{
-  if(!settings.goal_on)return 'Defina uma data-meta para acompanhar seu ritmo.';
-  const remain=TOTAL-done,goal=new Date(settings.goal_on+'T12:00:00'),today=new Date(TODAY()+'T12:00:00'),days=Math.ceil((goal-today)/86400000);
-  if(remain===0)return 'Livro concluído!';
-  if(days<0)return 'Meta vencida: faltam '+remain+' capítulos.';
-  if(days===0)return 'Meta é hoje: faltam '+remain+' capítulos.';
-  return 'Faltam '+remain+' capítulos · aproximadamente '+Math.ceil(remain/days)+' por dia.';
+  const m=goalMetrics();
+  if(remain===0)return 'Livro concluído! Parabéns por completar os 239 capítulos.';
+  if(!settings.goal_on)return 'Escolha uma meta de 3 meses, 6 meses, 1 ano ou defina sua própria data.';
+  if(m.days<=0)return 'Sua data-meta já passou. Escolha uma nova data para recalcular seu ritmo.';
+  const daily=new Intl.NumberFormat('pt-BR',{maximumFractionDigits:1}).format(m.daily);
+  const weekly=new Intl.NumberFormat('pt-BR',{maximumFractionDigits:1}).format(m.weekly);
+  return 'Ritmo médio necessário: '+daily+' capítulos por dia (cerca de '+weekly+' por semana), contando hoje e todos os dias até a data-meta.';
+ };
+ const chooseGoal=async(type)=>{
+  const today=TODAY();
+  const goal=type==='3_months'?addMonths(today,3):type==='6_months'?addMonths(today,6):type==='12_months'?addMonths(today,12):settings.goal_on;
+  if(!goal)return;
+  await saveSettings({...settings,goal_type:type,goal_on:goal});
  };
  if(loading)return <section className="reading-page"><p>Carregando seu progresso de leitura…</p></section>;
  return <section className="reading-page">
@@ -212,7 +228,7 @@ export default function ReadingPage({supabase,session,profile,onMessage=()=>{}})
   {error&&<div className="reading-alert">{error}</div>}
   {nextChapter&&<div className="reading-continue-card"><div><small>SEU PRÓXIMO PASSO</small><h3>{chapterLabel(nextChapter)}</h3><p>Continue sua jornada, um capítulo de cada vez.</p></div><a href={scriptureUrl(nextChapter)} target="_blank" rel="noopener noreferrer">Abrir na Biblioteca do Evangelho <span>↗</span></a></div>}
   <div className="reading-progress-card"><div className="reading-progress-top"><strong>{done} de {TOTAL} capítulos</strong><b>{percent}%</b></div><div className="reading-progress-track"><span style={{width:percent+'%',background:settings.active_color}}/></div><div className="reading-progress-foot"><span>Início: {fmtDate(settings.started_on)}</span><span>Conclusão: {fmtDate(settings.finished_on)}</span></div><p>{goalText()}</p></div>
-  {showSettings&&<div className="reading-settings"><label>Cor das marcações<div className="reading-colors">{COLORS.map(c=><button key={c} aria-label={'Selecionar cor '+c} className={settings.active_color===c?'chosen':''} style={{background:c}} onClick={()=>saveSettings({...settings,active_color:c})}/>)}</div></label><label>Data-meta<input type="date" value={settings.goal_on||''} onChange={e=>saveSettings({...settings,goal_on:e.target.value||null})}/><span className="reading-date-hint">Formato: dd/mm/aaaa</span></label><small>{saving?'Salvando ajustes…':'Os ajustes são pessoais e ficam vinculados à sua conta.'}</small></div>}
+  {showSettings&&<><div className="reading-goal-settings"><div className="reading-goal-heading"><div><b>Escolha sua meta de leitura</b><p>O aplicativo calcula o ritmo com base nos capítulos que você já marcou e no prazo escolhido.</p></div></div><div className="reading-goal-options"><button type="button" className={settings.goal_type==='3_months'?'selected':''} onClick={()=>chooseGoal('3_months')}><b>3 meses</b><small>Ritmo mais intenso</small></button><button type="button" className={settings.goal_type==='6_months'?'selected':''} onClick={()=>chooseGoal('6_months')}><b>6 meses</b><small>Ritmo equilibrado</small></button><button type="button" className={settings.goal_type==='12_months'?'selected':''} onClick={()=>chooseGoal('12_months')}><b>1 ano</b><small>Ritmo tranquilo</small></button><button type="button" className={settings.goal_type==='custom'?'selected':''} onClick={()=>saveSettings({...settings,goal_type:'custom'})}><b>Minha meta</b><small>Escolher uma data</small></button></div><div className="reading-goal-detail"><span>Data de conclusão</span><input type="date" min={TODAY()} value={settings.goal_on||''} onChange={e=>saveSettings({...settings,goal_type:'custom',goal_on:e.target.value||null})}/>{settings.goal_on&&goalMetrics().days>0&&<small>Faltam {goalMetrics().remain} capítulos em {goalMetrics().days} dias.</small>}</div></div><div className="reading-settings"><label>Cor das marcações<div className="reading-colors">{COLORS.map(c=><button key={c} aria-label={'Selecionar cor '+c} className={settings.active_color===c?'chosen':''} style={{background:c}} onClick={()=>saveSettings({...settings,active_color:c})}/>)}</div></label><label>Data-meta<input type="date" value={settings.goal_on||''} onChange={e=>saveSettings({...settings,goal_on:e.target.value||null})}/><span className="reading-date-hint">Formato: dd/mm/aaaa</span></label><small>{saving?'Salvando ajustes…':'Os ajustes são pessoais e ficam vinculados à sua conta.'}</small></div></>}
   <div className="reading-view-tabs"><button className={view==='desenho'?'active':''} onClick={()=>setView('desenho')}>Desenho</button><button className={view==='lista'?'active':''} onClick={()=>setView('lista')}>Lista de capítulos</button><button className={view==='historico'?'active':''} onClick={()=>setView('historico')}>Meu histórico</button></div>
   {view==='desenho'&&<div className="reading-art-card">
    {renderPhrase()}
