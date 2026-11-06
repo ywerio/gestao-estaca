@@ -112,7 +112,7 @@ export default function ReadingPage({supabase,session,profile,onMessage=()=>{}})
     const item=pendingRef.current[0];
     let result;
     if(item.type==='settings')result=await supabase.from('reading_settings').upsert({user_id:userId,...item.settings,updated_at:new Date().toISOString()},{onConflict:'user_id'});
-    else if(item.type==='activity')result=await supabase.from('reading_activity').upsert(item.row,{onConflict:'id'});
+    else if(item.type==='activity')result=await supabase.from('reading_activity').insert(item.row);
     else if(item.type==='delete')result=await supabase.from('reading_progress').delete().eq('user_id',userId).eq('book_key',item.book_key).eq('chapter',item.chapter);
     else result=await supabase.from('reading_progress').upsert(item.row,{onConflict:'user_id,book_key,chapter'});
     if(result.error){failed=true;setError('Não foi possível confirmar a sincronização. As alterações continuam salvas na fila deste aparelho: '+result.error.message);break;}
