@@ -209,7 +209,7 @@ export default function ReadingPage({supabase,session,profile,onMessage=()=>{}})
  };
  const goalText=()=>{
   const m=goalMetrics();
-  if(remain===0)return 'Livro concluído! Parabéns por completar os 239 capítulos.';
+  if(m.remain===0)return 'Livro concluído! Parabéns por completar os 239 capítulos.';
   if(!settings.goal_on)return 'Escolha uma meta de 3 meses, 6 meses, 1 ano ou defina sua própria data.';
   if(m.days<=0)return 'Sua data-meta já passou. Escolha uma nova data para recalcular seu ritmo.';
   const daily=new Intl.NumberFormat('pt-BR',{maximumFractionDigits:1}).format(m.daily);
