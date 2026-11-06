@@ -15,6 +15,8 @@ const SOURCES=[
 {title:'Manual Geral — Reuniões de Conselho (29.2.5)',url:'https://www.churchofjesuschrist.org/study/manual/general-handbook/29-meetings-in-the-church?lang=por',desc:'Conselhos coordenam esforços para fortalecer pessoas e famílias.'},
 {title:'Manual Geral — Ministração (21)',url:'https://www.churchofjesuschrist.org/study/manual/general-handbook/21-ministering?lang=por',desc:'Cuidado individual, entrevistas e apoio adaptado às necessidades.'},
 {title:'Manual Geral — Fortalecer membros novos e que retornam (23)',url:'https://www.churchofjesuschrist.org/study/manual/general-handbook/23?lang=por',desc:'Plano simples da Ala, acolhimento e coordenação missionária.'},
+{title:'Experiência: Ala Ubon, Tailândia',url:'https://www.churchofjesuschrist.org/study/ensign/2020/03/ubon-ward-can-do-it?lang=por',desc:'Convite coordenado para um domingo especial; o relato informa aumento posterior na frequência regular.'},
+{title:'Experiências de atividades que fortalecem alas',url:'https://www.churchofjesuschrist.org/study/ensign/2004/07/parties-picnics-and-potlucks?lang=por',desc:'Relatos de atividades simples, inclusão, serviço e integração de membros.'}
 ];
 async function fetchAllRows(makeQuery,maxRows=5000){
  const pageSize=500,rows=[];
