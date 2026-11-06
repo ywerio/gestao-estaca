@@ -221,7 +221,7 @@ const goalTotals=INDICATORS.map((_,i)=>WARDS.reduce((sum,w)=>sum+goalValue(w,goa
 const goalForMetric=(name)=>{const i=INDICATORS.findIndex(x=>x.key===name);return i<0?0:(stake||admin?WARDS.reduce((sum,w)=>sum+goalValue(w,refYear,i),0):goalValue(viewWard||'Altos',refYear,i))};
 const progressForMetric=(name)=>{const target=goalForMetric(name),actual=tot(name);return target>0?Math.round(actual/target*100):0};
 const [initialUnit]=[stake||admin?'Estaca':(viewWard||'Altos')];
-const selectedAcompUnit=acompUnit||initialUnit;
+const selectedAcompUnit=(stake||admin)?(acompUnit||initialUnit):(viewWard||profile?.ward_name||'Altos');
 const refYear=Number(currentMonth.slice(0,4));
 const targetFor=(ward,index)=>ward==='Estaca'?WARDS.reduce((sum,w)=>sum+goalValue(w,refYear,index),0):goalValue(ward,refYear,index);
 const actualFor=(ward,index)=>valueFor(ward,INDICATORS[index].key,currentMonth)??0;
