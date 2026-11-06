@@ -35,3 +35,17 @@
 .reading-sheet-chapter>button small{font-size:8px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .reading-sheet-chapter>a{font-size:9px;text-align:center;color:#315b47;text-decoration:none;font-weight:700;padding:4px}
 @media(max-width:600px){.reading-continue-card{align-items:flex-start;flex-direction:column}.reading-continue-card>a{width:100%;box-sizing:border-box;text-align:center}.reading-history-summary{grid-template-columns:repeat(3,minmax(0,1fr))}.reading-history-summary article{padding:9px}.reading-history-summary b{font-size:21px}.reading-history-row{gap:8px}.reading-history-row>a{font-size:9px}}
+
+
+.reading-goal-settings{background:#fff;border:1px solid #dfe9e2;border-radius:13px;padding:16px;display:grid;gap:13px}
+.reading-goal-heading b{font:800 14px Manrope;color:#294d3a}
+.reading-goal-heading p{margin:5px 0 0;font-size:11px;line-height:1.5;color:#718278}
+.reading-goal-options{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.reading-goal-options button{display:grid;gap:5px;text-align:left;padding:12px;border:1px solid #dce7df;border-radius:10px;background:#f8faf8;color:#315b47}
+.reading-goal-options button b{font:800 13px Manrope}
+.reading-goal-options button small{font-size:10px;color:#77877d}
+.reading-goal-options button.selected{border-color:#2c7251;background:#edf6ef;box-shadow:inset 0 0 0 1px #2c7251}
+.reading-goal-detail{display:grid;grid-template-columns:1fr minmax(150px,220px);align-items:center;gap:8px;font-size:11px;font-weight:700;color:#607469}
+.reading-goal-detail input{width:100%;min-width:0;box-sizing:border-box;border:1px solid #d8e4dc;border-radius:8px;padding:9px;color:#315b47;background:#fff}
+.reading-goal-detail small{grid-column:1/-1;font-size:10px;font-weight:500;color:#74867c}
+@media(max-width:700px){.reading-goal-settings{padding:13px}.reading-goal-options{grid-template-columns:repeat(2,minmax(0,1fr))}.reading-goal-options button{padding:10px}.reading-goal-detail{grid-template-columns:1fr}.reading-goal-detail small{grid-column:auto}}
