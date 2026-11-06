@@ -137,7 +137,7 @@ export default function ReadingPage({supabase,session,profile,onMessage=()=>{}})
  const renderPhrase=()=>{
   const lines=['JÁ LI O','LIVRO','DE','MÓRMON'];
   return <svg className="reading-art phrase-art" viewBox="0 0 360 210" role="img" aria-label="Frase Já li o Livro de Mórmon formada por 239 capítulos">
-   {PHRASE_CELLS.map((cell,i)=>{const chapter=CHAPTERS[i],read=progressMap.has(chapter.book_key+':'+chapter.chapter),region=PHRASE_REGIONS.find(r=>r.id===cell.region);return <rect key={i} x={cell.x} y={cell.y} width={cell.w} height={cell.h} rx="1" fill={read?settings.active_color:'#fff'} stroke={read?settings.active_color:'#9baca1'} strokeWidth=".8" onClick={()=>openRegion(region.id,region.name,region.chapters)} className="reading-cell" aria-label={chapter.book_name+' capítulo '+chapter.chapter}/>})}
+   {PHRASE_CELLS.map((cell,i)=>{const chapter=CHAPTERS[i],read=progressMap.has(chapter.book_key+':'+chapter.chapter),region=PHRASE_REGIONS.find(r=>r.id===cell.region);return <rect key={i} x={cell.x} y={cell.y} width={cell.w} height={cell.h} rx="1" fill={read?settings.active_color:`color-mix(in srgb, ${settings.active_color} 14%, white)`} stroke={read?settings.active_color:settings.active_color} strokeOpacity={read?1:.48} strokeWidth=".9" onClick={()=>openRegion(region.id,region.name,region.chapters)} className="reading-cell" aria-label={chapter.book_name+' capítulo '+chapter.chapter}/>})}
   </svg>
  };
  const renderTemple=()=> <svg className="reading-art temple-art" viewBox="0 0 360 500" role="img" aria-label="Templo de Teresina dividido em 239 capítulos">
