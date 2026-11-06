@@ -50,6 +50,7 @@ export default function ReadingPage({supabase,session,profile,onMessage=()=>{}})
  const readDays=useMemo(()=>new Set(activity.filter(a=>a.action==='read').map(a=>new Date(a.occurred_at).toLocaleDateString('en-CA'))),[activity]);
  const streak=useMemo(()=>{let n=0,d=new Date(TODAY()+'T12:00:00');while(readDays.has([d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-'))){n++;d.setDate(d.getDate()-1)}return n},[readDays]);
  const progressMap=useMemo(()=>new Set(progress.map(p=>p.book_key+':'+p.chapter)),[progress]);
+ const nextChapter=CHAPTERS.find(ch=>!progress.some(p=>p.book_key===ch.book_key&&p.chapter===ch.chapter))||null;
  const percent=Math.round(done/TOTAL*100);
  const groupedBooks=useMemo(()=>BOOKS.map(b=>({...b,chapters:CHAPTERS.filter(c=>c.book_key===b.key),read:progress.filter(p=>p.book_key===b.key).length})),[progress]);
  const applyQueue=(base,items)=>{let next=[...base];items.forEach(item=>{if(item.type==='settings'||item.type==='activity')return;if(item.type==='delete')next=next.filter(p=>!(p.book_key===item.book_key&&p.chapter===item.chapter));else{next=next.filter(p=>!(p.book_key===item.row.book_key&&p.chapter===item.row.chapter));next.push(item.row)}});return next};
