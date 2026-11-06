@@ -31,7 +31,7 @@ const fmtDate=s=>s?new Date(s+'T12:00:00').toLocaleDateString('pt-BR'):'—';
 export default function ReadingPage({supabase,session,profile,onMessage=()=>{}}){
  const userId=session?.user?.id;
  const [progress,setProgress]=useState([]);
- const [settings,setSettings]=useState({active_color:COLORS[0],layout:'frase',started_on:null,goal_on:null,finished_on:null});
+ const [settings,setSettings]=useState({active_color:COLORS[0],layout:'templo',started_on:null,goal_on:null,finished_on:null});
  const [pending,setPending]=useState([]);
  const [loading,setLoading]=useState(true);
  const [saving,setSaving]=useState(false);
@@ -60,10 +60,10 @@ export default function ReadingPage({supabase,session,profile,onMessage=()=>{}})
    if(p.error)throw p.error;if(s.error)throw s.error;
    const serverRows=p.data||[],visibleRows=applyQueue(serverRows,localQueue);
    setProgress(visibleRows);
-   const defaults={active_color:COLORS[0],layout:'frase',started_on:null,goal_on:null,finished_on:null};
+   const defaults={active_color:COLORS[0],layout:'templo',started_on:null,goal_on:null,finished_on:null};
    const serverSettings={...defaults,...(s.data||{})},queuedSettings=localQueue.filter(x=>x.type==='settings').at(-1)?.settings||{};
    const stored={...serverSettings,...queuedSettings};
-   const corrected={...stored,started_on:visibleRows.length&&!stored.started_on?TODAY():stored.started_on,finished_on:serverRows.length===TOTAL?(stored.finished_on||TODAY()):null};
+   const corrected={...stored,layout:stored.layout==='frase'?'templo':stored.layout,started_on:visibleRows.length&&!stored.started_on?TODAY():stored.started_on,finished_on:serverRows.length===TOTAL?(stored.finished_on||TODAY()):null};
    setSettings(corrected);
    if(JSON.stringify(corrected)!==JSON.stringify(serverSettings)){
     const {error:dateError}=await supabase.from('reading_settings').upsert({user_id:userId,...corrected,updated_at:new Date().toISOString()},{onConflict:'user_id'});
@@ -140,11 +140,15 @@ export default function ReadingPage({supabase,session,profile,onMessage=()=>{}})
    {PHRASE_CELLS.map((cell,i)=>{const chapter=CHAPTERS[i],read=progressMap.has(chapter.book_key+':'+chapter.chapter),region=PHRASE_REGIONS.find(r=>r.id===cell.region);return <rect key={i} x={cell.x} y={cell.y} width={cell.w} height={cell.h} rx="1" fill={read?settings.active_color:'#fff'} stroke={read?settings.active_color:'#9baca1'} strokeWidth=".8" onClick={()=>openRegion(region.id,region.name,region.chapters)} className="reading-cell" aria-label={chapter.book_name+' capítulo '+chapter.chapter}/>})}
   </svg>
  };
- const renderTemple=()=> <svg className="reading-art temple-art" viewBox="0 0 360 500" role="img" aria-label="Templo de Teresina dividido em 239 capítulos">
-  
-
-  <g>{TEMPLE_CELLS.map((cell,i)=>{const chapter=cell.chapter,read=progressMap.has(chapter.book_key+':'+chapter.chapter),zone=TEMPLE_ZONES.find(z=>z.id===cell.region);return <rect key={i} x={cell.x} y={cell.y} width={cell.w} height={cell.h} rx="1" fill={read?settings.active_color:'#fff'} stroke={read?settings.active_color:'#9baca1'} strokeWidth=".8" className="reading-cell" onClick={()=>openRegion(cell.region,zone.name,zone.chapters)}/>})}</g>
-   <g className="temple-outline" fill="none" stroke="#6e8b7b" strokeWidth="2" pointerEvents="none"><path d="M180 8L174 18H186Z M176 18H184V80H176Z M162 80H198V144H162Z M144 144H216V200H144Z M110 210H250V378H110Z M40 245H110V315H40Z M250 245H320V315H250Z M145 378H215V420H145Z M72 420H288V444H72Z"/><path d="M122 210V378 M150 210V378 M180 210V378 M210 210V378 M238 210V378 M132 230V285A12 12 0 0 1 156 285V230 M204 230V285A12 12 0 0 1 228 285V230 M164 378V396A16 16 0 0 1 196 396V378 M72 420H288 M84 432H276" /><path d="M180 8L180 1" stroke="#C9A227" strokeWidth="3"/></g>
+ const renderTemple=()=> <svg className="reading-art temple-art" viewBox="0 0 360 430" role="img" aria-label="Templo em formato de marcador dividido em 239 capítulos">
+  <g>{TEMPLE_CELLS.map((cell,i)=>{const chapter=cell.chapter,read=progressMap.has(chapter.book_key+':'+chapter.chapter),zone=TEMPLE_ZONES.find(z=>z.id===cell.region);return <rect key={i} x={cell.x} y={cell.y} width={cell.w} height={cell.h} rx="0" fill={read?settings.active_color:'#fff'} stroke={read?settings.active_color:'#557565'} strokeWidth="1.1" className="reading-cell" onClick={()=>openRegion(cell.region,zone.name,zone.chapters)} />})}</g>
+  <g className="temple-outline" fill="none" stroke="#145b36" strokeWidth="2.2" strokeLinejoin="round" pointerEvents="none">
+   <path d="M172 18H188V42H196V100H202V162H216V230H250V245H330V340H260V360H240V400H200V405H232V421H128V405H160V400H120V360H100V340H30V245H110V230H144V162H158V100H164V42H172Z"/>
+   <path d="M172 18V42H168V96H162V158H148V229H120V355H164V400H196V355H240V229H212V158H198V96H192V42H188V18" />
+   <path d="M30 245H110V340H30Z M250 245H330V340H250Z M110 230H250V355H110Z M164 360H196V400H164Z M128 405H232V421H128Z"/>
+   <path d="M178 245V355 M182 245V355 M145 260V330 M215 260V330 M174 365V395 M186 365V395" />
+   <path d="M176 18V5" stroke="#c9a227" strokeWidth="3.5"/>
+  </g>
  </svg>;
  const renderChapel=()=> <svg className="reading-art chapel-art" viewBox="0 0 360 230" role="img" aria-label="Logo oficial da Estaca Horto dividida em 239 capítulos">
   <image href="/logo-estaca.svg" x="0" y="0" width="360" height="230" opacity=".48" pointerEvents="none"/>
@@ -198,10 +202,10 @@ export default function ReadingPage({supabase,session,profile,onMessage=()=>{}})
   <div className="reading-heading"><div><span className="reading-eyebrow">PROGRESSO PESSOAL</span><h2>Leitura do Livro de Mórmon</h2><p>Uma jornada pessoal, capítulo por capítulo.</p></div><button className="reading-secondary" onClick={()=>setShowSettings(v=>!v)}>{showSettings?'Fechar ajustes':'Ajustes'}</button></div>
   {error&&<div className="reading-alert">{error}</div>}
   <div className="reading-progress-card"><div className="reading-progress-top"><strong>{done} de {TOTAL} capítulos</strong><b>{percent}%</b></div><div className="reading-progress-track"><span style={{width:percent+'%',background:settings.active_color}}/></div><div className="reading-progress-foot"><span>Início: {fmtDate(settings.started_on)}</span><span>Conclusão: {fmtDate(settings.finished_on)}</span></div><p>{goalText()}</p></div>
-  {showSettings&&<div className="reading-settings"><label>Visualização<select value={settings.layout} onChange={e=>saveSettings({...settings,layout:e.target.value})}><option value="frase">Frase</option><option value="templo">Templo de Teresina</option><option value="capela">Logo da Estaca Horto</option></select></label><label>Cor das marcações<div className="reading-colors">{COLORS.map(c=><button key={c} aria-label={'Selecionar cor '+c} className={settings.active_color===c?'chosen':''} style={{background:c}} onClick={()=>saveSettings({...settings,active_color:c})}/>)}</div></label><label>Data-meta<input type="date" value={settings.goal_on||''} onChange={e=>saveSettings({...settings,goal_on:e.target.value||null})}/><span className="reading-date-hint">Formato: dd/mm/aaaa</span></label><small>{saving?'Salvando ajustes…':'Os ajustes são pessoais e ficam vinculados à sua conta.'}</small></div>}
+  {showSettings&&<div className="reading-settings"><label>Visualização<select value={settings.layout} onChange={e=>saveSettings({...settings,layout:e.target.value})}><option value="templo">Templo de Teresina</option><option value="capela">Logo da Estaca Horto</option></select></label><label>Cor das marcações<div className="reading-colors">{COLORS.map(c=><button key={c} aria-label={'Selecionar cor '+c} className={settings.active_color===c?'chosen':''} style={{background:c}} onClick={()=>saveSettings({...settings,active_color:c})}/>)}</div></label><label>Data-meta<input type="date" value={settings.goal_on||''} onChange={e=>saveSettings({...settings,goal_on:e.target.value||null})}/><span className="reading-date-hint">Formato: dd/mm/aaaa</span></label><small>{saving?'Salvando ajustes…':'Os ajustes são pessoais e ficam vinculados à sua conta.'}</small></div>}
   <div className="reading-view-tabs"><button className={view==='desenho'?'active':''} onClick={()=>setView('desenho')}>Desenho</button><button className={view==='lista'?'active':''} onClick={()=>setView('lista')}>Lista de capítulos</button></div>
   {view==='desenho'&&<div className="reading-art-card">
-   {currentLayout==='frase'?renderPhrase():currentLayout==='templo'?renderTemple():renderChapel()}
+   {currentLayout==='capela'?renderChapel():renderTemple()}
    <p>Toque em uma região para ampliar e marcar os capítulos. Os três desenhos usam o mesmo progresso.</p>
    {regions&&<div className="reading-region-links">{regions.map(z=><button key={z.id} onClick={()=>openRegion(z.id,z.name,z.chapters)}>{z.name} <span>{z.chapters.filter(c=>progressMap.has(c.book_key+':'+c.chapter)).length}/{z.count}</span></button>)}</div>}
   </div>}
