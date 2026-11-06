@@ -63,7 +63,7 @@ export default function ReadingPage({supabase,session,profile,onMessage=()=>{}})
    const defaults={active_color:COLORS[0],layout:'frase',started_on:null,goal_on:null,finished_on:null};
    const serverSettings={...defaults,...(s.data||{})},queuedSettings=localQueue.filter(x=>x.type==='settings').at(-1)?.settings||{};
    const stored={...serverSettings,...queuedSettings};
-   const corrected={...stored,started_on:visibleRows.length&&!stored.started_on?TODAY():stored.started_on,finished_on:serverRows.length===TOTAL?(stored.finished_on||TODAY()):null};
+   const corrected={...stored,layout:'frase',started_on:visibleRows.length&&!stored.started_on?TODAY():stored.started_on,finished_on:serverRows.length===TOTAL?(stored.finished_on||TODAY()):null};
    setSettings(corrected);
    if(JSON.stringify(corrected)!==JSON.stringify(serverSettings)){
     const {error:dateError}=await supabase.from('reading_settings').upsert({user_id:userId,...corrected,updated_at:new Date().toISOString()},{onConflict:'user_id'});
@@ -151,8 +151,8 @@ export default function ReadingPage({supabase,session,profile,onMessage=()=>{}})
   {CHAPEL_ZONES.map(zone=><g key={zone.id} clipPath={`url(#chapel-${({T:'tower',R:'roof',B:'body',L:'left',D:'right',S:'base'})[zone.id]})`}>{zone.cells.map((cell,i)=>{const chapter=CHAPTERS[CHAPEL_ZONES.slice(0,CHAPEL_ZONES.indexOf(zone)).reduce((n,z)=>n+z.count,0)+i],read=progressMap.has(chapter.book_key+':'+chapter.chapter);return <rect key={i} x={cell.x} y={cell.y} width={cell.w} height={cell.h} fill={read?settings.active_color:'#ffffff'} fillOpacity={read ? 0.9 : 0.48} stroke={read?settings.active_color:'#82988c'} strokeWidth=".6" className="reading-cell" onClick={()=>openRegion(zone.id,zone.name,zone.chapters)}/>})}</g>)}
  <image href="/logo-estaca.svg" x="0" y="0" width="360" height="230" opacity=".62" pointerEvents="none"/>
  </svg>;
- const currentLayout=settings.layout||'frase';
- const regions=currentLayout==='templo'?TEMPLE_ZONES:currentLayout==='capela'?CHAPEL_ZONES:null;
+ const currentLayout='frase';
+ const regions=null;
  const activeRegionData=activeRegion;
  const regionDone=activeRegionData?.chapters.filter(c=>progressMap.has(c.book_key+':'+c.chapter)).length||0;
  const bulk=async(chapters,read)=>{
@@ -199,11 +199,11 @@ export default function ReadingPage({supabase,session,profile,onMessage=()=>{}})
   <div className="reading-heading"><div><span className="reading-eyebrow">PROGRESSO PESSOAL</span><h2>Leitura do Livro de Mórmon</h2><p>Uma jornada pessoal, capítulo por capítulo.</p></div><button className="reading-secondary" onClick={()=>setShowSettings(v=>!v)}>{showSettings?'Fechar ajustes':'Ajustes'}</button></div>
   {error&&<div className="reading-alert">{error}</div>}
   <div className="reading-progress-card"><div className="reading-progress-top"><strong>{done} de {TOTAL} capítulos</strong><b>{percent}%</b></div><div className="reading-progress-track"><span style={{width:percent+'%',background:settings.active_color}}/></div><div className="reading-progress-foot"><span>Início: {fmtDate(settings.started_on)}</span><span>Conclusão: {fmtDate(settings.finished_on)}</span></div><p>{goalText()}</p></div>
-  {showSettings&&<div className="reading-settings"><label>Visualização<select value={settings.layout} onChange={e=>saveSettings({...settings,layout:e.target.value})}><option value="frase">Frase</option><option value="templo">Templo de Teresina</option><option value="capela">Logo da Estaca Horto</option></select></label><label>Cor das marcações<div className="reading-colors">{COLORS.map(c=><button key={c} aria-label={'Selecionar cor '+c} className={settings.active_color===c?'chosen':''} style={{background:c}} onClick={()=>saveSettings({...settings,active_color:c})}/>)}</div></label><label>Data-meta<input type="date" value={settings.goal_on||''} onChange={e=>saveSettings({...settings,goal_on:e.target.value||null})}/><span className="reading-date-hint">Formato: dd/mm/aaaa</span></label><small>{saving?'Salvando ajustes…':'Os ajustes são pessoais e ficam vinculados à sua conta.'}</small></div>}
+  {showSettings&&<div className="reading-settings"><label>Cor das marcações<div className="reading-colors">{COLORS.map(c=><button key={c} aria-label={'Selecionar cor '+c} className={settings.active_color===c?'chosen':''} style={{background:c}} onClick={()=>saveSettings({...settings,active_color:c})}/>)}</div></label><label>Data-meta<input type="date" value={settings.goal_on||''} onChange={e=>saveSettings({...settings,goal_on:e.target.value||null})}/><span className="reading-date-hint">Formato: dd/mm/aaaa</span></label><small>{saving?'Salvando ajustes…':'Os ajustes são pessoais e ficam vinculados à sua conta.'}</small></div>}
   <div className="reading-view-tabs"><button className={view==='desenho'?'active':''} onClick={()=>setView('desenho')}>Desenho</button><button className={view==='lista'?'active':''} onClick={()=>setView('lista')}>Lista de capítulos</button></div>
   {view==='desenho'&&<div className="reading-art-card">
-   {currentLayout==='frase'?renderPhrase():currentLayout==='templo'?renderTemple():renderChapel()}
-   <p>Toque em uma região para ampliar e marcar os capítulos. Os três desenhos usam o mesmo progresso.</p>
+   {renderPhrase()}
+   <p>Toque nas letras para marcar os capítulos lidos.</p>
    {regions&&<div className="reading-region-links">{regions.map(z=><button key={z.id} onClick={()=>openRegion(z.id,z.name,z.chapters)}>{z.name} <span>{z.chapters.filter(c=>progressMap.has(c.book_key+':'+c.chapter)).length}/{z.count}</span></button>)}</div>}
   </div>}
   {view==='lista'&&<div className="reading-book-list">{groupedBooks.map(book=><details key={book.key}><summary><span>{book.name}</span><b>{book.read}/{book.count}</b></summary><div className="reading-chapter-grid">{book.chapters.map(c=>{const read=progressMap.has(c.book_key+':'+c.chapter);return <button key={c.chapter} className={read?'read':''} style={read?{background:settings.active_color,borderColor:settings.active_color}:undefined} onClick={()=>toggleChapter(c)} aria-label={book.name+' capítulo '+c.chapter}>{c.chapter}</button>})}</div></details>)}</div>}
