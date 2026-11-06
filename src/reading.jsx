@@ -58,10 +58,21 @@ export default function ReadingPage({supabase,session,profile,onMessage=()=>{}})
     supabase.from('reading_settings').select('active_color,layout,started_on,goal_on,finished_on').eq('user_id',userId).maybeSingle()
    ]);
    if(p.error)throw p.error;if(s.error)throw s.error;
-   const serverRows=p.data||[],visibleRows=applyQueue(serverRows,localQueue);
-   setProgress(visibleRows);
+   const serverRows=p.data||[];
+   const serverMap=new Map(serverRows.map(row=>[row.book_key+':'+row.chapter,row]));
    const defaults={active_color:COLORS[0],layout:'frase',started_on:null,goal_on:null,finished_on:null};
-   const serverSettings={...defaults,...(s.data||{})},queuedSettings=localQueue.filter(x=>x.type==='settings').at(-1)?.settings||{};
+   const serverSettings={...defaults,...(s.data||{})};
+   const effectiveQueue=localQueue.filter(item=>{
+    if(item.type==='settings')return Object.keys(item.settings||{}).some(key=>(item.settings||{})[key]!==serverSettings[key]);
+    const key=item.type==='delete'?item.book_key+':'+item.chapter:item.row.book_key+':'+item.row.chapter;
+    const saved=serverMap.get(key);
+    if(item.type==='delete')return !!saved;
+    return !saved||saved.color!==item.row.color||saved.read_on!==item.row.read_on;
+   });
+   setQueue(effectiveQueue);
+   const visibleRows=applyQueue(serverRows,effectiveQueue);
+   setProgress(visibleRows);
+   const queuedSettings=effectiveQueue.filter(x=>x.type==='settings').at(-1)?.settings||{};
    const stored={...serverSettings,...queuedSettings};
    const corrected={...stored,layout:'frase',started_on:visibleRows.length&&!stored.started_on?TODAY():stored.started_on,finished_on:serverRows.length===TOTAL?(stored.finished_on||TODAY()):null};
    setSettings(corrected);
