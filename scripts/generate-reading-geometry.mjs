@@ -57,14 +57,15 @@ for(const [lineIndex,line] of lines.entries()){
 }
 const grid=(x,y,cols,rows,size,region)=>Array.from({length:cols*rows},(_,i)=>({x:x+(i%cols)*size,y:y+Math.floor(i/cols)*size,w:size,h:size,region}));
 const temple=[
- {id:"A",name:"Pináculo",count:6,cells:grid(176,8,2,3,4,"A")},
- {id:"B",name:"Torre superior",count:8,cells:grid(164,80,2,4,16,"B")},
- {id:"C",name:"Torre inferior",count:16,cells:grid(152,144,4,4,14,"C")},
- {id:"D",name:"Corpo central",count:120,cells:grid(110,210,10,12,14,"D")},
- {id:"E",name:"Ala esquerda",count:25,cells:grid(40,245,5,5,14,"E")},
- {id:"F",name:"Ala direita",count:25,cells:grid(250,245,5,5,14,"F")},
- {id:"G",name:"Pórtico",count:15,cells:grid(145,378,5,3,14,"G")},
- {id:"H",name:"Escadaria",count:24,cells:grid(108,420,12,2,12,"H")}
+ {id:"A",name:"Pináculo",count:6,cells:grid(172,18,2,3,8,"A")},
+ {id:"B",name:"Torre superior",count:18,cells:grid(168,48,3,6,8,"B")},
+ {id:"C",name:"Torre intermediária",count:24,cells:grid(162,104,4,6,9,"C")},
+ {id:"D",name:"Torre inferior",count:49,cells:grid(148.5,166,7,7,9,"D")},
+ {id:"E",name:"Corpo central",count:64,cells:grid(120,235,8,8,15,"E")},
+ {id:"F",name:"Ala esquerda",count:25,cells:grid(40,260,5,5,10,"F")},
+ {id:"G",name:"Ala direita",count:25,cells:grid(270,260,5,5,10,"G")},
+ {id:"H",name:"Entrada principal",count:15,cells:grid(168,360,3,5,8,"H")},
+ {id:"I",name:"Base",count:13,cells:grid(128,405,13,1,8,"I")}
 ];
 const chapel=[
  {id:"T",name:"Torre e pináculo",count:28,cells:grid(132,40,4,7,9,"T")},
