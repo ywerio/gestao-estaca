@@ -118,13 +118,14 @@ Deno.serve(async (req: Request) => {
 
     const last = activity?.[0];
     const lastChapter = last ? `${BOOKS[last.book_key] || last.book_key} ${last.chapter}` : null;
-    const firstName = (profile.full_name || "").trim().split(/\s+/)[0];
+    const rawFirstName = (profile.full_name || "").trim().split(/\s+/)[0];
+    const firstName = rawFirstName && !/^(administrador|admin|usuário|usuario|user|teste)$/i.test(rawFirstName) ? rawFirstName : "";
     const greeting = firstName ? `Olá, ${escapeHtml(firstName)}!` : "Olá!";
     const chapterLine = lastChapter
       ? `Seu último capítulo marcado foi <strong>${escapeHtml(lastChapter)}</strong>.`
       : "Ainda não encontramos um capítulo marcado no seu histórico.";
     const subject = "Seu momento de leitura do Livro de Mórmon";
-    const html = `<div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;color:#263b2e;line-height:1.6"><h2 style="color:#2e7d32">Sua leitura de hoje ainda não foi registrada</h2><p>${greeting}</p><p>Você ainda não registrou sua leitura do Livro de Mórmon hoje. ${chapterLine}</p><p>Que tal reservar alguns minutos para continuar sua jornada e avançar na meta que escolheu?</p><p style="margin-top:28px;color:#66756b;font-size:13px">Gestão Estaca Horto · Um capítulo de cada vez.</p></div>`;
+    const html = `<div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;color:#263b2e;line-height:1.6"><h2 style="color:#2e7d32">Sua leitura de hoje ainda não foi registrada</h2><p>${greeting}</p><p>Você ainda não registrou sua leitura do Livro de Mórmon hoje. ${chapterLine}</p><p>Que tal reservar alguns minutos para continuar sua jornada e avançar na meta que escolheu?</p><p style="margin-top:28px;color:#66756b;font-size:13px">Gestão Estaca Horto · Um capítulo de cada vez.</p><div style="margin-top:30px;padding-top:18px;border-top:1px solid #e5ebe7;text-align:center"><img src="https://gestao-estaca.vercel.app/logo-estaca-email.png" alt="Estaca Teresina Brasil Horto" width="190" style="display:block;width:190px;max-width:75%;height:auto;margin:0 auto;border:0" /><p style="margin:10px 0 0;color:#7b8981;font-size:11px;letter-spacing:.4px">ESTACA TERESINA BRASIL HORTO</p><p style="margin:18px 0 0;color:#8a948e;font-size:10px;line-height:1.45">Este endereço é utilizado exclusivamente para envios automáticos do aplicativo. Por favor, não responda a este e-mail.</p></div></div>`;
     const plain = `${firstName ? `Olá, ${firstName}!` : "Olá!"}\n\nVocê ainda não registrou sua leitura do Livro de Mórmon hoje. ${lastChapter ? `Seu último capítulo marcado foi ${lastChapter}.` : "Ainda não encontramos um capítulo marcado no seu histórico."}\n\nQue tal reservar alguns minutos para continuar sua jornada e avançar na meta que escolheu?\n\nGestão Estaca Horto`;
 
     try {
