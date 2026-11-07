@@ -37,6 +37,7 @@ export default function ReadingPage({supabase,session,profile,onMessage=()=>{}})
  const userId=session?.user?.id;
  const [progress,setProgress]=useState([]);
  const [settings,setSettings]=useState({active_color:COLORS[0],layout:'frase',started_on:null,goal_on:null,goal_type:'custom',finished_on:null});
+ const [emailReminder,setEmailReminder]=useState({enabled:false,reminder_time:'20:00',timezone:'America/Fortaleza'});
  const [pending,setPending]=useState([]);
  const [loading,setLoading]=useState(true);
  const [saving,setSaving]=useState(false);
@@ -62,13 +63,15 @@ export default function ReadingPage({supabase,session,profile,onMessage=()=>{}})
   setLoading(true);setError('');
   const localQueue=parseQueue(userId);setQueue(localQueue);
   try{
-   const [p,s,h]=await Promise.all([
+   const [p,s,h,r]=await Promise.all([
     supabase.from('reading_progress').select('book_key,chapter,color,read_on').eq('user_id',userId),
     supabase.from('reading_settings').select('active_color,layout,started_on,goal_on,goal_type,finished_on').eq('user_id',userId).maybeSingle(),
-    supabase.from('reading_activity').select('id,book_key,chapter,action,occurred_at,source').eq('user_id',userId).order('occurred_at',{ascending:false}).limit(300)
+    supabase.from('reading_activity').select('id,book_key,chapter,action,occurred_at,source').eq('user_id',userId).order('occurred_at',{ascending:false}).limit(300),
+    supabase.from('reading_email_reminders').select('enabled,reminder_time,timezone').eq('user_id',userId).maybeSingle()
    ]);
-   if(p.error)throw p.error;if(s.error)throw s.error;if(h.error)throw h.error;
+   if(p.error)throw p.error;if(s.error)throw s.error;if(h.error)throw h.error;if(r.error)throw r.error;
    setActivity(h.data||[]);
+   setEmailReminder({enabled:false,reminder_time:'20:00',timezone:'America/Fortaleza',...(r.data||{})});
    const serverRows=p.data||[];
    const serverMap=new Map(serverRows.map(row=>[row.book_key+':'+row.chapter,row]));
    const defaults={active_color:COLORS[0],layout:'frase',started_on:null,goal_on:null,goal_type:'custom',finished_on:null};
@@ -136,6 +139,14 @@ export default function ReadingPage({supabase,session,profile,onMessage=()=>{}})
   setSaving(false);
   if(e){const item={id:Date.now()+Math.random(),type:'settings',settings:next};setQueue([...pendingRef.current.filter(x=>x.type!=='settings'),item]);setError('Configurações pendentes de sincronização: '+e.message);return false}
   setQueue(pendingRef.current.filter(x=>x.type!=='settings'));return true;
+ };
+ const saveEmailReminder=async next=>{
+  setSaving(true);
+  const payload={user_id:userId,...next,updated_at:new Date().toISOString()};
+  const {error:e}=await supabase.from('reading_email_reminders').upsert(payload,{onConflict:'user_id'});
+  setSaving(false);
+  if(e){setError('Não foi possível salvar o lembrete por e-mail: '+e.message);return false;}
+  setEmailReminder(next);setError('');onMessage(next.enabled?'Lembrete por e-mail ativado.':'Lembrete por e-mail desativado.');return true;
  };
  const toggleChapter=async chapter=>{
   const key=chapter.book_key+':'+chapter.chapter,wasRead=progressMap.has(key),nextRead=!wasRead;
@@ -228,7 +239,7 @@ export default function ReadingPage({supabase,session,profile,onMessage=()=>{}})
   {error&&<div className="reading-alert">{error}</div>}
   {nextChapter&&<div className="reading-continue-card"><div><small>SEU PRÓXIMO PASSO</small><h3>{chapterLabel(nextChapter)}</h3><p>Continue sua jornada, um capítulo de cada vez.</p></div><a href={scriptureUrl(nextChapter)} target="_blank" rel="noopener noreferrer">Abrir na Biblioteca do Evangelho <span>↗</span></a></div>}
   <div className="reading-progress-card"><div className="reading-progress-top"><strong>{done} de {TOTAL} capítulos</strong><b>{percent}%</b></div><div className="reading-progress-track"><span style={{width:percent+'%',background:settings.active_color}}/></div><div className="reading-progress-foot"><span>Início: {fmtDate(settings.started_on)}</span><span>Meta: {fmtDate(settings.goal_on)}</span><span>Concluído: {fmtDate(settings.finished_on)}</span></div><p>{goalText()}</p></div>
-  {showSettings&&<><div className="reading-goal-settings"><div className="reading-goal-heading"><div><b>Escolha sua meta de leitura</b><p>O aplicativo calcula o ritmo com base nos capítulos que você já marcou e no prazo escolhido.</p></div></div><div className="reading-goal-options"><button type="button" className={settings.goal_type==='3_months'?'selected':''} onClick={()=>chooseGoal('3_months')}><b>3 meses</b><small>Ritmo mais intenso</small></button><button type="button" className={settings.goal_type==='6_months'?'selected':''} onClick={()=>chooseGoal('6_months')}><b>6 meses</b><small>Ritmo equilibrado</small></button><button type="button" className={settings.goal_type==='12_months'?'selected':''} onClick={()=>chooseGoal('12_months')}><b>1 ano</b><small>Ritmo tranquilo</small></button><button type="button" className={settings.goal_type==='custom'?'selected':''} onClick={()=>saveSettings({...settings,goal_type:'custom'})}><b>Minha meta</b><small>Escolher uma data</small></button></div><div className="reading-goal-detail"><span>Data de conclusão</span><input type="date" min={TODAY()} value={settings.goal_on||''} onChange={e=>saveSettings({...settings,goal_type:'custom',goal_on:e.target.value||null})}/>{settings.goal_on&&goalMetrics().days>0&&<small>Faltam {goalMetrics().remain} capítulos em {goalMetrics().days} dias.</small>}</div></div><div className="reading-settings"><label>Cor das marcações<div className="reading-colors">{COLORS.map(c=><button key={c} aria-label={'Selecionar cor '+c} className={settings.active_color===c?'chosen':''} style={{background:c}} onClick={()=>saveSettings({...settings,active_color:c})}/>)}</div></label><small>{saving?'Salvando ajustes…':'Os ajustes são pessoais e ficam vinculados à sua conta.'}</small></div></>}
+  {showSettings&&<><div className="reading-goal-settings"><div className="reading-goal-heading"><div><b>Escolha sua meta de leitura</b><p>O aplicativo calcula o ritmo com base nos capítulos que você já marcou e no prazo escolhido.</p></div></div><div className="reading-goal-options"><button type="button" className={settings.goal_type==='3_months'?'selected':''} onClick={()=>chooseGoal('3_months')}><b>3 meses</b><small>Ritmo mais intenso</small></button><button type="button" className={settings.goal_type==='6_months'?'selected':''} onClick={()=>chooseGoal('6_months')}><b>6 meses</b><small>Ritmo equilibrado</small></button><button type="button" className={settings.goal_type==='12_months'?'selected':''} onClick={()=>chooseGoal('12_months')}><b>1 ano</b><small>Ritmo tranquilo</small></button><button type="button" className={settings.goal_type==='custom'?'selected':''} onClick={()=>saveSettings({...settings,goal_type:'custom'})}><b>Minha meta</b><small>Escolher uma data</small></button></div><div className="reading-goal-detail"><span>Data de conclusão</span><input type="date" min={TODAY()} value={settings.goal_on||''} onChange={e=>saveSettings({...settings,goal_type:'custom',goal_on:e.target.value||null})}/>{settings.goal_on&&goalMetrics().days>0&&<small>Faltam {goalMetrics().remain} capítulos em {goalMetrics().days} dias.</small>}</div></div><div className="reading-settings"><label>Cor das marcações<div className="reading-colors">{COLORS.map(c=><button key={c} aria-label={'Selecionar cor '+c} className={settings.active_color===c?'chosen':''} style={{background:c}} onClick={()=>saveSettings({...settings,active_color:c})}/>)}</div></label><small>{saving?'Salvando ajustes…':'Os ajustes são pessoais e ficam vinculados à sua conta.'}</small></div><div className="reading-email-settings"><div><b>Lembrete diário por e-mail</b><p>Receba um incentivo quando ainda não tiver registrado sua leitura no dia.</p><small>Destino: {session?.user?.email||profile?.email||'E-mail da conta'}</small></div><label className="reading-email-toggle"><input type="checkbox" checked={emailReminder.enabled} onChange={e=>setEmailReminder(v=>({...v,enabled:e.target.checked}))}/> Ativar lembrete</label><label className="reading-email-time">Horário do lembrete<input type="time" value={emailReminder.reminder_time?.slice(0,5)||'20:00'} onChange={e=>setEmailReminder(v=>({...v,reminder_time:e.target.value||'20:00'}))}/></label><small>O lembrete só será enviado se nenhuma leitura estiver registrada naquele dia. Você pode desativá-lo quando quiser.</small><button type="button" className="reading-email-save" disabled={saving} onClick={()=>saveEmailReminder(emailReminder)}>{saving?'Salvando…':'Salvar preferência de e-mail'}</button></div></>}
   <div className="reading-view-tabs"><button className={view==='desenho'?'active':''} onClick={()=>setView('desenho')}>Desenho</button><button className={view==='lista'?'active':''} onClick={()=>setView('lista')}>Lista de capítulos</button><button className={view==='historico'?'active':''} onClick={()=>setView('historico')}>Meu histórico</button></div>
   {view==='desenho'&&<div className="reading-art-card">
    {renderPhrase()}
