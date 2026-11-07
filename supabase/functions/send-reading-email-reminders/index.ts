@@ -118,7 +118,8 @@ Deno.serve(async (req: Request) => {
 
     const last = activity?.[0];
     const lastChapter = last ? `${BOOKS[last.book_key] || last.book_key} ${last.chapter}` : null;
-    const firstName = (profile.full_name || "").trim().split(/\s+/)[0] || "Tudo bem";
+    const firstName = (profile.full_name || "").trim().split(/\s+/)[0];
+    const greeting = firstName ? `Olá, ${escapeHtml(firstName)}!` : "Olá!";
     const chapterLine = lastChapter
       ? `Seu último capítulo marcado foi <strong>${escapeHtml(lastChapter)}</strong>.`
       : "Ainda não encontramos um capítulo marcado no seu histórico.";
