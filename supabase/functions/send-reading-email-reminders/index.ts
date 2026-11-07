@@ -40,8 +40,8 @@ Deno.serve(async (req: Request) => {
     return new Response("Unauthorized", { status: 401 });
   }
 
-  const resendKey = Deno.env.get("RESEND_API_KEY");
-  const from = Deno.env.get("READING_EMAIL_FROM");
+  const appsScriptUrl = Deno.env.get("READING_EMAIL_APPS_SCRIPT_URL");
+  const appsScriptToken = Deno.env.get("READING_EMAIL_APPS_SCRIPT_TOKEN");
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   let serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if (!serviceKey) {
@@ -50,8 +50,8 @@ Deno.serve(async (req: Request) => {
       serviceKey = keys.default || Object.values(keys)[0] as string;
     } catch { /* no secret key available */ }
   }
-  if (!resendKey || !from || !supabaseUrl || !serviceKey) {
-    return new Response(JSON.stringify({ error: "Email provider or Supabase service secrets are not configured." }), {
+  if (!appsScriptUrl || !appsScriptToken || !supabaseUrl || !serviceKey) {
+    return new Response(JSON.stringify({ error: "Google Apps Script or Supabase service secrets are not configured." }), {
       status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
@@ -128,19 +128,26 @@ Deno.serve(async (req: Request) => {
     const plain = `${firstName ? `Olá, ${firstName}!` : "Olá!"}\n\nVocê ainda não registrou sua leitura do Livro de Mórmon hoje. ${lastChapter ? `Seu último capítulo marcado foi ${lastChapter}.` : "Ainda não encontramos um capítulo marcado no seu histórico."}\n\nQue tal reservar alguns minutos para continuar sua jornada e avançar na meta que escolheu?\n\nGestão Estaca Horto`;
 
     try {
-      const response = await fetch("https://api.resend.com/emails", {
+      const response = await fetch(appsScriptUrl, {
         method: "POST",
-        headers: {
-          "Authorization": `Bearer ${resendKey}`,
-          "Content-Type": "application/json",
-          "Idempotency-Key": `reading-reminder-${pref.user_id}-${local.date}`,
-        },
-        body: JSON.stringify({ from, to: [profile.email], subject, html, text: plain }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          token: appsScriptToken,
+          to: profile.email,
+          subject,
+          html,
+          text: plain,
+        }),
+        redirect: "follow",
       });
-      const result = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(result.message || result.name || `Resend HTTP ${response.status}`);
+      const responseText = await response.text();
+      let result: Record<string, unknown> = {};
+      try { result = JSON.parse(responseText); } catch { /* invalid response */ }
+      if (!response.ok || result.success !== true) {
+        throw new Error(String(result.error || `Google Apps Script HTTP ${response.status}: ${responseText.slice(0, 250)}`));
+      }
       await admin.from("reading_email_reminder_log").update({
-        status: "sent", sent_at: new Date().toISOString(), provider_message_id: result.id || null, last_error: null,
+        status: "sent", sent_at: new Date().toISOString(), provider_message_id: null, last_error: null,
       }).eq("user_id", pref.user_id).eq("reminder_date", local.date);
       sent++;
     } catch (error) {
