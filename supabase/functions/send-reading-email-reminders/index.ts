@@ -125,7 +125,7 @@ Deno.serve(async (req: Request) => {
       : "Ainda não encontramos um capítulo marcado no seu histórico.";
     const subject = "Seu momento de leitura do Livro de Mórmon";
     const html = `<div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;color:#263b2e;line-height:1.6"><h2 style="color:#2e7d32">Sua leitura de hoje ainda não foi registrada</h2><p>${greeting}</p><p>Você ainda não registrou sua leitura do Livro de Mórmon hoje. ${chapterLine}</p><p>Que tal reservar alguns minutos para continuar sua jornada e avançar na meta que escolheu?</p><p style="margin-top:28px;color:#66756b;font-size:13px">Gestão Estaca Horto · Um capítulo de cada vez.</p></div>`;
-    const plain = `Olá, ${firstName}!\n\nVocê ainda não registrou sua leitura do Livro de Mórmon hoje. ${lastChapter ? `Seu último capítulo marcado foi ${lastChapter}.` : "Ainda não encontramos um capítulo marcado no seu histórico."}\n\nQue tal reservar alguns minutos para continuar sua jornada e avançar na meta que escolheu?\n\nGestão Estaca Horto`;
+    const plain = `${firstName ? `Olá, ${firstName}!` : "Olá!"}\n\nVocê ainda não registrou sua leitura do Livro de Mórmon hoje. ${lastChapter ? `Seu último capítulo marcado foi ${lastChapter}.` : "Ainda não encontramos um capítulo marcado no seu histórico."}\n\nQue tal reservar alguns minutos para continuar sua jornada e avançar na meta que escolheu?\n\nGestão Estaca Horto`;
 
     try {
       const response = await fetch("https://api.resend.com/emails", {
